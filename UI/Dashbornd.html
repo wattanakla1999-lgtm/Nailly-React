@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+
+<html class="light" lang="th">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Nailly - Dashboard</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;500;600;700;800&amp;display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#818CF8",
+                        "on-primary": "#ffffff",
+                        "primary-container": "#e0e7ff",
+                        "on-primary-container": "#312e81",
+                        "secondary": "#FB923C",
+                        "on-secondary": "#ffffff",
+                        "secondary-container": "#ffedd5",
+                        "on-secondary-container": "#7c2d12",
+                        "tertiary": "#a78bfa",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-container": "#f3e8ff",
+                        "on-tertiary-container": "#581c87",
+                        "surface": "#fcf8ff",
+                        "surface-variant": "#dad6ff",
+                        "on-surface": "#1e1b4b",
+                        "on-surface-variant": "#4338ca",
+                        "outline": "#818cf8",
+                        "outline-variant": "#c7d2fe",
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "1rem",
+                        "full": "9999px"
+                    },
+                    spacing: {
+                        "base": "4px",
+                        "container-margin": "24px",
+                        "gutter": "16px",
+                        "card-padding": "20px",
+                        "section-gap": "32px"
+                    },
+                    fontFamily: {
+                        "label-sm": ["Bricolage Grotesque", "sans-serif"],
+                        "display-lg": ["Bricolage Grotesque", "sans-serif"],
+                        "headline-md": ["Bricolage Grotesque", "sans-serif"],
+                        "display-lg-mobile": ["Bricolage Grotesque", "sans-serif"],
+                        "body-lg": ["Bricolage Grotesque", "sans-serif"],
+                        "body-md": ["Bricolage Grotesque", "sans-serif"]
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Bricolage Grotesque', sans-serif;
+        }
+
+        .y2k-card {
+            background: #ffffff;
+            border: 3px solid #818CF8;
+            border-radius: 1rem;
+            box-shadow: 6px 6px 0px #FB923C;
+            transition: all 0.2s ease;
+        }
+
+        .y2k-card:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 8px 8px 0px #FB923C;
+        }
+
+        .bg-mesh {
+            background-color: #fcf8ff;
+            background-image:
+                radial-gradient(at 0% 0%, rgba(129, 140, 248, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(251, 146, 60, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(167, 139, 250, 0.15) 0px, transparent 50%),
+                radial-gradient(at 0% 100%, rgba(129, 140, 248, 0.15) 0px, transparent 50%);
+            background-attachment: fixed;
+        }
+    </style>
+</head>
+
+<body class="bg-mesh text-on-surface min-h-screen relative overflow-x-hidden">
+    <!-- Mobile Top Navigation -->
+    <nav class="md:hidden bg-surface/90 backdrop-blur-md fixed top-0 w-full z-50 border-b-4 border-outline shadow-sm">
+        <div class="flex justify-between items-center h-20 px-container-margin w-full max-w-7xl mx-auto">
+            <div class="font-display-lg-mobile text-display-lg-mobile text-primary font-extrabold tracking-tighter">
+                Nailly</div>
+            <div class="flex items-center gap-4">
+                <span
+                    class="material-symbols-outlined text-primary cursor-pointer hover:text-secondary transition-colors text-3xl"
+                    data-icon="notifications">notifications</span>
+                <div
+                    class="w-10 h-10 rounded-xl overflow-hidden border-2 border-primary cursor-pointer hover:scale-110 transition-transform">
+                    <img alt="User avatar" class="w-full h-full object-cover" data-alt="User avatar"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuDgpbPB2xndoc_qGtH2lm8vrgYrvUdV47t9Fqh8gIFbSupZ4v7OgUOaCfF_iOgsdsDaQZotg8wl6GSgAatfeOSDsfIrHKHiLizAIh7x4QU37yfIViNVMq22-bpYBErS2D2YWX39CngKVrzG4WexXPZc3aR_oNOC29rk3ocU3dyRBq7YNxMBmFFoI6v6gWzANv8bNYrh8yxKsRJMQDK6iNKUE0fvA8HAbHf4lnt1Gqp6xuwoSuYSX92QHwSCZKSmP0qSRKkuW-c3OCA" />
+                </div>
+            </div>
+        </div>
+        <!-- Mobile Nav Links -->
+        <div class="flex overflow-x-auto px-gutter gap-6 pb-2 hide-scrollbar">
+            <a class="text-primary font-bold border-b-4 border-secondary pb-1 whitespace-nowrap text-label-sm uppercase"
+                href="#">ภาพรวม</a>
+            <a class="text-on-surface-variant hover:text-primary transition-colors whitespace-nowrap text-label-sm uppercase font-semibold"
+                href="#">นัดหมาย</a>
+            <a class="text-on-surface-variant hover:text-primary transition-colors whitespace-nowrap text-label-sm uppercase font-semibold"
+                href="#">บริการ</a>
+            <a class="text-on-surface-variant hover:text-primary transition-colors whitespace-nowrap text-label-sm uppercase font-semibold"
+                href="#">ลูกค้า</a>
+            <a class="text-on-surface-variant hover:text-primary transition-colors whitespace-nowrap text-label-sm uppercase font-semibold"
+                href="#">รายงาน</a>
+        </div>
+    </nav>
+    <!-- Desktop Side Navigation -->
+    <aside
+        class="hidden md:flex bg-surface h-screen w-64 fixed left-0 top-0 border-r-4 border-outline flex-col p-gutter gap-4 z-40">
+        <!-- Header -->
+        <div class="flex items-center gap-3 mb-8 mt-4 px-2">
+            <div class="w-12 h-12 rounded-xl overflow-hidden border-2 border-primary shadow-[2px_2px_0px_#FB923C]">
+                <img alt="Store Logo" class="w-full h-full object-cover"
+                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuADt6i2QESysBZgPb6mm39nerQ6QJESly-Eql0FH2J_PrUFMUY921Bd05gc9n5-gE-LFLcsj1cHfdCGpsVPOMrkzwzBK6n7yPQ-BDyrUAf7EoRTPElTE2pH0iush7zWm3_Vepva-VxXe2mu_Gj6u5rC5X7Sizdli1sdXWLFOIfyQdvUCpQpVZmHRRRpRuebhcAGjuoY1-ih-83uEEBrulOVgisE5fUm0jTVVhoDYvbXVs1rK8pmktsrIVlE7hPXGQpkYkSRQMIZ_dI" />
+            </div>
+            <div>
+                <h1 class="font-display-lg text-primary text-[28px] font-black tracking-tighter">Nailly</h1>
+                <p class="font-label-sm text-secondary font-bold uppercase">Management</p>
+            </div>
+        </div>
+        <!-- Main Nav -->
+        <nav class="flex flex-col gap-3 flex-grow">
+            <a class="bg-primary-container text-on-primary-container rounded-xl border-2 border-primary shadow-[4px_4px_0px_0px_#FB923C] translate-x-[-2px] translate-y-[-2px] flex items-center gap-3 px-4 py-3 font-bold transition-all"
+                href="#">
+                <span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+                <span class="text-label-sm uppercase tracking-wide">ภาพรวม</span>
+            </a>
+            <a class="text-on-surface-variant flex items-center gap-3 px-4 py-3 hover:bg-surface-variant/50 rounded-xl transition-all font-semibold hover:translate-x-1"
+                href="#">
+                <span class="material-symbols-outlined" data-icon="calendar_today">calendar_today</span>
+                <span class="text-label-sm uppercase tracking-wide">การนัดหมาย</span>
+            </a>
+            <a class="text-on-surface-variant flex items-center gap-3 px-4 py-3 hover:bg-surface-variant/50 rounded-xl transition-all font-semibold hover:translate-x-1"
+                href="#">
+                <span class="material-symbols-outlined" data-icon="brush">brush</span>
+                <span class="text-label-sm uppercase tracking-wide">บริการ</span>
+            </a>
+            <a class="text-on-surface-variant flex items-center gap-3 px-4 py-3 hover:bg-surface-variant/50 rounded-xl transition-all font-semibold hover:translate-x-1"
+                href="#">
+                <span class="material-symbols-outlined" data-icon="group">group</span>
+                <span class="text-label-sm uppercase tracking-wide">ลูกค้า</span>
+            </a>
+            <a class="text-on-surface-variant flex items-center gap-3 px-4 py-3 hover:bg-surface-variant/50 rounded-xl transition-all font-semibold hover:translate-x-1"
+                href="#">
+                <span class="material-symbols-outlined" data-icon="assessment">assessment</span>
+                <span class="text-label-sm uppercase tracking-wide">รายงาน</span>
+            </a>
+        </nav>
+        <!-- CTA & Footer Nav -->
+        <div class="mt-auto flex flex-col gap-4">
+            <button
+                class="w-full bg-gradient-to-r from-[#818CF8] to-[#FB923C] text-white rounded-xl py-3 px-4 font-bold uppercase tracking-wider border-2 border-on-surface shadow-[4px_4px_0px_0px_#1e1b4b] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#1e1b4b] transition-all flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined" data-icon="add">add</span>
+                จองคิวใหม่
+            </button>
+            <div class="h-[2px] w-full bg-outline-variant my-2"></div>
+            <a class="text-on-surface-variant flex items-center gap-3 px-4 py-2 hover:bg-surface-variant/50 rounded-xl transition-all font-semibold hover:translate-x-1"
+                href="#">
+                <span class="material-symbols-outlined" data-icon="settings">settings</span>
+                <span class="text-label-sm uppercase">ตั้งค่า</span>
+            </a>
+            <a class="text-on-surface-variant flex items-center gap-3 px-4 py-2 hover:bg-surface-variant/50 rounded-xl transition-all font-semibold hover:translate-x-1"
+                href="#">
+                <span class="material-symbols-outlined" data-icon="logout">logout</span>
+                <span class="text-label-sm uppercase">ออกจากระบบ</span>
+            </a>
+        </div>
+    </aside>
+    <!-- Main Content Canvas -->
+    <main
+        class="pt-[120px] pb-24 md:pt-section-gap md:ml-64 px-gutter md:px-container-margin max-w-7xl mx-auto flex flex-col gap-section-gap min-h-screen">
+        <!-- Header Section -->
+        <section class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div>
+                <h2 class="font-display-lg-mobile md:font-display-lg text-on-surface font-black">สวัสดี, คุณมินนี่ 👋
+                </h2>
+                <p class="font-body-lg text-on-surface-variant mt-1 font-medium">วันที่ 24 พฤษภาคม 2567</p>
+            </div>
+            <button
+                class="md:hidden w-full sm:w-auto bg-gradient-to-r from-[#818CF8] to-[#FB923C] text-white rounded-xl py-3 px-6 font-bold border-2 border-on-surface shadow-[4px_4px_0px_0px_#1e1b4b] transition-all flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined" data-icon="add">add</span>
+                เพิ่มนัดหมาย
+            </button>
+            <button
+                class="hidden md:flex w-auto bg-gradient-to-r from-[#818CF8] to-[#FB923C] text-white rounded-xl py-3 px-6 font-bold border-2 border-on-surface shadow-[4px_4px_0px_0px_#1e1b4b] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#1e1b4b] transition-all items-center justify-center gap-2">
+                <span class="material-symbols-outlined" data-icon="add">add</span>
+                เพิ่มนัดหมาย
+            </button>
+        </section>
+        <!-- 4 Stat Cards -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            <!-- Card 1 -->
+            <div class="y2k-card p-card-padding flex flex-col gap-3 relative overflow-hidden group">
+                <div class="flex items-center gap-3">
+                    <div
+                        class="w-12 h-12 rounded-xl bg-primary-container border-2 border-primary flex items-center justify-center text-primary shadow-[2px_2px_0px_#818CF8]">
+                        <span class="material-symbols-outlined" data-icon="calendar_today">calendar_today</span>
+                    </div>
+                    <span class="font-bold text-label-sm text-on-surface uppercase">นัดหมายวันนี้</span>
+                </div>
+                <div class="flex items-baseline gap-3 mt-2">
+                    <span class="font-black text-headline-md text-on-surface text-4xl">12</span>
+                    <span
+                        class="font-bold text-label-sm text-secondary bg-secondary-container px-3 py-1 rounded-lg border-2 border-secondary shadow-[2px_2px_0px_#FB923C] flex items-center">
+                        <span class="material-symbols-outlined text-[14px]" data-icon="arrow_upward">arrow_upward</span>
+                        3
+                    </span>
+                </div>
+            </div>
+            <!-- Card 2 -->
+            <div class="y2k-card p-card-padding flex flex-col gap-3 relative overflow-hidden group">
+                <div class="flex items-center gap-3">
+                    <div
+                        class="w-12 h-12 rounded-xl bg-secondary-container border-2 border-secondary flex items-center justify-center text-secondary shadow-[2px_2px_0px_#FB923C]">
+                        <span class="material-symbols-outlined" data-icon="group">group</span>
+                    </div>
+                    <span class="font-bold text-label-sm text-on-surface uppercase">ลูกค้าทั้งหมด</span>
+                </div>
+                <div class="flex items-baseline gap-3 mt-2">
+                    <span class="font-black text-headline-md text-on-surface text-4xl">248</span>
+                    <span
+                        class="font-bold text-label-sm text-tertiary bg-tertiary-container px-3 py-1 rounded-lg border-2 border-tertiary shadow-[2px_2px_0px_#a78bfa] flex items-center">
+                        <span class="material-symbols-outlined text-[14px]" data-icon="arrow_upward">arrow_upward</span>
+                        5 ใหม่
+                    </span>
+                </div>
+            </div>
+            <!-- Card 3 -->
+            <div class="y2k-card p-card-padding flex flex-col gap-3 relative overflow-hidden group">
+                <div class="flex items-center gap-3">
+                    <div
+                        class="w-12 h-12 rounded-xl bg-tertiary-container border-2 border-tertiary flex items-center justify-center text-tertiary shadow-[2px_2px_0px_#a78bfa]">
+                        <span class="material-symbols-outlined" data-icon="spa">spa</span>
+                    </div>
+                    <span class="font-bold text-label-sm text-on-surface uppercase">บริการที่ให้</span>
+                </div>
+                <div class="flex items-baseline gap-3 mt-2">
+                    <span class="font-black text-headline-md text-on-surface text-4xl">8</span>
+                    <span
+                        class="font-bold text-label-sm text-on-surface-variant bg-surface-variant px-3 py-1 rounded-lg border-2 border-outline-variant">ประเภท</span>
+                </div>
+            </div>
+            <!-- Card 4 -->
+            <div class="y2k-card p-card-padding flex flex-col gap-3 relative overflow-hidden group">
+                <div class="flex items-center gap-3">
+                    <div
+                        class="w-12 h-12 rounded-xl bg-gradient-to-br from-[#818CF8] to-[#FB923C] border-2 border-on-surface flex items-center justify-center text-white shadow-[2px_2px_0px_#1e1b4b]">
+                        <span class="material-symbols-outlined"
+                            data-icon="account_balance_wallet">account_balance_wallet</span>
+                    </div>
+                    <span class="font-bold text-label-sm text-on-surface uppercase">รายได้วันนี้</span>
+                </div>
+                <div class="flex items-baseline gap-3 mt-2">
+                    <span
+                        class="font-black text-headline-md text-transparent bg-clip-text bg-gradient-to-r from-[#818CF8] to-[#FB923C] text-4xl">฿3,200</span>
+                </div>
+            </div>
+        </section>
+        <!-- Main Grid -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-4">
+            <!-- Left: นัดหมายวันนี้ -->
+            <div class="lg:col-span-2 y2k-card flex flex-col p-0">
+                <div
+                    class="p-card-padding border-b-2 border-outline-variant flex justify-between items-center bg-surface-variant/30 rounded-t-xl">
+                    <h3 class="font-black text-headline-md text-on-surface text-[22px] uppercase">นัดหมายวันนี้</h3>
+                    <button
+                        class="text-primary font-bold text-label-sm hover:text-secondary underline decoration-2 underline-offset-4 transition-colors">ดูทั้งหมด</button>
+                </div>
+                <div class="flex flex-col p-4 gap-4">
+                    <!-- List Item 1 -->
+                    <div
+                        class="flex items-center gap-4 p-4 hover:bg-surface-variant/40 rounded-xl transition-colors border-2 border-transparent hover:border-outline-variant group">
+                        <div
+                            class="w-14 h-14 rounded-xl overflow-hidden shrink-0 border-2 border-primary shadow-[2px_2px_0px_#818CF8]">
+                            <img alt="Client avatar" class="w-full h-full object-cover"
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDhNpXZyacwG5q2S5HlwjiZ5Mr-kBxeh9rY_oUy58fKAWSFtkjevptHv8BZrlthTr6wg7GGomNMCZQTfThLURSNaBXGhfZZJROnvTIP2ntFy4C6Ki45ZQIbBf5QOswezsekhCTgNbSzCTFdRG1OnKpYLlrtZcQPsW-r7RFD-Jb4mLUjd9-04tEk0pivo5BZMJwYqbM23DDZBKa2jmAEYE83YpYioDWqJWG6a7OeZqZA_E-gtCgxHg4d0Brc9NeXivDDo1v127RIdQ0" />
+                        </div>
+                        <div class="flex-grow min-w-0">
+                            <h4 class="font-bold text-body-lg text-on-surface truncate">คุณพิม พิมประภา</h4>
+                            <p class="font-medium text-label-sm text-on-surface-variant truncate mt-1">ต่อเล็บเจล +
+                                เพ้นท์ลาย</p>
+                        </div>
+                        <div class="text-right shrink-0 flex flex-col items-end">
+                            <p class="font-black text-body-lg text-on-surface">10:00 น.</p>
+                            <span
+                                class="inline-block mt-2 font-bold text-xs bg-tertiary-container text-tertiary px-3 py-1.5 rounded-lg border-2 border-tertiary shadow-[2px_2px_0px_#a78bfa] uppercase">กำลังรับบริการ</span>
+                        </div>
+                    </div>
+                    <!-- List Item 2 -->
+                    <div
+                        class="flex items-center gap-4 p-4 hover:bg-surface-variant/40 rounded-xl transition-colors border-2 border-transparent hover:border-outline-variant group">
+                        <div
+                            class="w-14 h-14 rounded-xl overflow-hidden shrink-0 border-2 border-secondary shadow-[2px_2px_0px_#FB923C]">
+                            <img alt="Client avatar" class="w-full h-full object-cover"
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBQAdLpKVRx3Ilt3FqqiqbjG-RzEzl7HlLcLasPv7TGtAuv9KATFEynIMpQOWpsDXxY5iS7ARBNMX_U0_5cqobN45jvBS4DC27DlwJUYafl1YgAGu73S0Zqc5lDQTcwVeVVyBH50jdAw1pTiUBXclHUTfuLyEf7Ktyrnb2Jnn8ANLWxTI9yjk6VjbcxeL5DSBK9SxuaTXQu_FP3C3UmMRcQ0-R8IWvtm3dCN6sxTlVkrtfpFfjY8uqISUTI0Zkbs85UMJuLYgy_ncU" />
+                        </div>
+                        <div class="flex-grow min-w-0">
+                            <h4 class="font-bold text-body-lg text-on-surface truncate">คุณอรัญญา</h4>
+                            <p class="font-medium text-label-sm text-on-surface-variant truncate mt-1">สปามือและเท้า +
+                                ทาสีเจล</p>
+                        </div>
+                        <div class="text-right shrink-0 flex flex-col items-end">
+                            <p class="font-black text-body-lg text-on-surface">13:30 น.</p>
+                            <span
+                                class="inline-block mt-2 font-bold text-xs bg-surface-variant text-on-surface-variant px-3 py-1.5 rounded-lg border-2 border-outline-variant shadow-[2px_2px_0px_#c7d2fe] uppercase">รอยืนยัน</span>
+                        </div>
+                    </div>
+                    <!-- List Item 3 -->
+                    <div
+                        class="flex items-center gap-4 p-4 hover:bg-surface-variant/40 rounded-xl transition-colors border-2 border-transparent hover:border-outline-variant group">
+                        <div
+                            class="w-14 h-14 rounded-xl overflow-hidden shrink-0 border-2 border-primary shadow-[2px_2px_0px_#818CF8] flex items-center justify-center bg-primary-container text-primary font-black text-xl">
+                            จ
+                        </div>
+                        <div class="flex-grow min-w-0">
+                            <h4 class="font-bold text-body-lg text-on-surface truncate">คุณเจนนิเฟอร์</h4>
+                            <p class="font-medium text-label-sm text-on-surface-variant truncate mt-1">ถอดเล็บเจล</p>
+                        </div>
+                        <div class="text-right shrink-0 flex flex-col items-end">
+                            <p class="font-black text-body-lg text-on-surface">15:00 น.</p>
+                            <span
+                                class="inline-block mt-2 font-bold text-xs bg-primary-container text-primary px-3 py-1.5 rounded-lg border-2 border-primary shadow-[2px_2px_0px_#818CF8] uppercase">ยืนยันแล้ว</span>
+                        </div>
+                    </div>
+                    <!-- List Item 4 -->
+                    <div
+                        class="flex items-center gap-4 p-4 hover:bg-surface-variant/40 rounded-xl transition-colors border-2 border-transparent hover:border-outline-variant group">
+                        <div
+                            class="w-14 h-14 rounded-xl overflow-hidden shrink-0 border-2 border-secondary shadow-[2px_2px_0px_#FB923C]">
+                            <img alt="Client avatar" class="w-full h-full object-cover"
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDaeplGl0eg0XDgBHNcLjjTKmTkE9MaJ7D28RnajVemY6abga4I7eDODXu_WoAVgNZinJJL5pH4yn-bFtRPSZTta3I2jnRerFLE-jQBxz7jJ5fXBBjX42MKq3TrXFXuI2ZA52SUoMHEm5ABUNCo_tiKnx8I4YuOEiyi6CqCr-u4O7FV_AuXjxjYdw_2u7-gBNJtUoMhVMYPV-8fWmCC46lgSqjThCweVOAXBLmP0R4_RE9sBy4PBuldTabvod1hemYU3w2bGCARW_Y" />
+                        </div>
+                        <div class="flex-grow min-w-0">
+                            <h4 class="font-bold text-body-lg text-on-surface truncate">คุณลูกศร</h4>
+                            <p class="font-medium text-label-sm text-on-surface-variant truncate mt-1">ทาสีเจลมือ
+                                (สีพื้น)</p>
+                        </div>
+                        <div class="text-right shrink-0 flex flex-col items-end">
+                            <p class="font-black text-body-lg text-on-surface">16:30 น.</p>
+                            <span
+                                class="inline-block mt-2 font-bold text-xs bg-primary-container text-primary px-3 py-1.5 rounded-lg border-2 border-primary shadow-[2px_2px_0px_#818CF8] uppercase">ยืนยันแล้ว</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Right: บริการยอดนิยม -->
+            <div class="lg:col-span-1 y2k-card flex flex-col p-card-padding bg-surface-variant/20">
+                <div class="flex justify-between items-center mb-8">
+                    <h3 class="font-black text-headline-md text-on-surface text-[22px] uppercase">บริการยอดนิยม</h3>
+                    <span
+                        class="material-symbols-outlined text-primary cursor-pointer hover:text-secondary">more_horiz</span>
+                </div>
+                <div class="flex flex-col gap-6">
+                    <!-- Service 1 -->
+                    <div>
+                        <div class="flex justify-between items-end mb-2">
+                            <div>
+                                <h4 class="font-bold text-body-lg text-on-surface">ทาสีเจลมือ</h4>
+                                <div class="flex items-center gap-1 mt-1">
+                                    <span class="material-symbols-outlined text-[16px] text-secondary"
+                                        data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span>
+                                    <span class="font-bold text-label-sm text-on-surface-variant">4.9 (124)</span>
+                                </div>
+                            </div>
+                            <span class="font-black text-lg text-primary">45%</span>
+                        </div>
+                        <div
+                            class="w-full bg-surface-variant rounded-full h-3 border-2 border-outline-variant overflow-hidden">
+                            <div class="bg-gradient-to-r from-[#818CF8] to-[#FB923C] h-full rounded-full"
+                                style="width: 45%"></div>
+                        </div>
+                    </div>
+                    <!-- Service 2 -->
+                    <div>
+                        <div class="flex justify-between items-end mb-2">
+                            <div>
+                                <h4 class="font-bold text-body-lg text-on-surface">สปามือ-เท้า</h4>
+                                <div class="flex items-center gap-1 mt-1">
+                                    <span class="material-symbols-outlined text-[16px] text-secondary"
+                                        data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span>
+                                    <span class="font-bold text-label-sm text-on-surface-variant">4.8 (89)</span>
+                                </div>
+                            </div>
+                            <span class="font-black text-lg text-secondary">30%</span>
+                        </div>
+                        <div
+                            class="w-full bg-surface-variant rounded-full h-3 border-2 border-outline-variant overflow-hidden">
+                            <div class="bg-[#FB923C] h-full rounded-full" style="width: 30%"></div>
+                        </div>
+                    </div>
+                    <!-- Service 3 -->
+                    <div>
+                        <div class="flex justify-between items-end mb-2">
+                            <div>
+                                <h4 class="font-bold text-body-lg text-on-surface">ต่อเล็บ PVC</h4>
+                                <div class="flex items-center gap-1 mt-1">
+                                    <span class="material-symbols-outlined text-[16px] text-secondary"
+                                        data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span>
+                                    <span class="font-bold text-label-sm text-on-surface-variant">4.7 (56)</span>
+                                </div>
+                            </div>
+                            <span class="font-black text-lg text-tertiary">15%</span>
+                        </div>
+                        <div
+                            class="w-full bg-surface-variant rounded-full h-3 border-2 border-outline-variant overflow-hidden">
+                            <div class="bg-[#a78bfa] h-full rounded-full" style="width: 15%"></div>
+                        </div>
+                    </div>
+                    <!-- Service 4 -->
+                    <div>
+                        <div class="flex justify-between items-end mb-2">
+                            <div>
+                                <h4 class="font-bold text-body-lg text-on-surface">เพ้นท์ลายศิลปะ</h4>
+                                <div class="flex items-center gap-1 mt-1">
+                                    <span class="material-symbols-outlined text-[16px] text-secondary"
+                                        data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span>
+                                    <span class="font-bold text-label-sm text-on-surface-variant">4.9 (42)</span>
+                                </div>
+                            </div>
+                            <span class="font-black text-lg text-primary">10%</span>
+                        </div>
+                        <div
+                            class="w-full bg-surface-variant rounded-full h-3 border-2 border-outline-variant overflow-hidden">
+                            <div class="bg-[#818CF8] h-full rounded-full" style="width: 10%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+</body>
+
+</html>

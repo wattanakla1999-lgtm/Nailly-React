@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+
+<html lang="th">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Nailly - นัดหมาย</title>
+    <!-- Material Symbols -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <!-- Google Fonts: Bricolage Grotesque -->
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;500;600;700;800;900&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-dim": "#dad6ff",
+                        "surface-bright": "#fcf8ff",
+                        "inverse-surface": "#2d2a45",
+                        "tertiary": "#6e4f8d",
+                        "primary-fixed-dim": "#b3bbfb",
+                        "surface-container-highest": "#e5e0fb",
+                        "on-error-container": "#410002",
+                        "error-container": "#ffdad6",
+                        "primary-fixed": "#e0e0ff",
+                        "on-tertiary": "#ffffff",
+                        "on-tertiary-fixed-variant": "#553874",
+                        "on-error": "#ffffff",
+                        "on-secondary-fixed-variant": "#553e4b",
+                        "outline": "#76768a",
+                        "inverse-primary": "#b3bbfb",
+                        "secondary": "#6d5663",
+                        "on-surface": "#18152e",
+                        "surface-container": "#efe9ff",
+                        "tertiary-fixed-dim": "#d9bdfc",
+                        "surface-container-low": "#f6f2ff",
+                        "primary": "#4852bb",
+                        "on-tertiary-fixed": "#280545",
+                        "tertiary-container": "#f6d9ff",
+                        "surface-container-high": "#e9e4fc",
+                        "on-secondary-fixed": "#261421",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-variant": "#e5e0fb",
+                        "on-secondary-container": "#261421",
+                        "background": "#fcf8ff",
+                        "surface": "#fcf8ff",
+                        "on-background": "#18152e",
+                        "outline-variant": "#c9c5e1",
+                        "secondary-fixed": "#f6d8ea",
+                        "on-primary-fixed-variant": "#3039a0",
+                        "surface-tint": "#4852bb",
+                        "on-tertiary-container": "#280545",
+                        "secondary-fixed-dim": "#d9bdce",
+                        "inverse-on-surface": "#eff0fa",
+                        "secondary-container": "#f6d8ea",
+                        "on-surface-variant": "#47465b",
+                        "primary-container": "#6068d1",
+                        "error": "#ba1a1a",
+                        "on-secondary": "#ffffff",
+                        "on-primary-fixed": "#01003e",
+                        "on-primary-container": "#ffffff",
+                        "tertiary-fixed": "#f6d9ff",
+                        "on-primary": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "section-gap": "32px",
+                        "container-margin": "24px",
+                        "card-padding": "24px",
+                        "base": "8px"
+                    },
+                    "fontFamily": {
+                        "headline-md": [
+                            "Bricolage Grotesque"
+                        ],
+                        "label-sm": [
+                            "Bricolage Grotesque"
+                        ],
+                        "display-lg-mobile": [
+                            "Bricolage Grotesque"
+                        ],
+                        "body-md": [
+                            "Bricolage Grotesque"
+                        ],
+                        "body-lg": [
+                            "Bricolage Grotesque"
+                        ],
+                        "display-lg": [
+                            "Bricolage Grotesque"
+                        ],
+                        "label-bold": [
+                            "Bricolage Grotesque"
+                        ]
+                    },
+                    "fontSize": {
+                        "headline-md": [
+                            "24px",
+                            {
+                                "lineHeight": "1.3",
+                                "fontWeight": "800"
+                            }
+                        ],
+                        "label-sm": [
+                            "12px",
+                            {
+                                "lineHeight": "1",
+                                "letterSpacing": "0.05em",
+                                "fontWeight": "600"
+                            }
+                        ],
+                        "label-bold": [
+                            "14px",
+                            {
+                                "lineHeight": "1",
+                                "letterSpacing": "0.05em",
+                                "fontWeight": "800"
+                            }
+                        ],
+                        "display-lg-mobile": [
+                            "32px",
+                            {
+                                "lineHeight": "1.2",
+                                "fontWeight": "900"
+                            }
+                        ],
+                        "body-md": [
+                            "16px",
+                            {
+                                "lineHeight": "1.5",
+                                "fontWeight": "500"
+                            }
+                        ],
+                        "body-lg": [
+                            "18px",
+                            {
+                                "lineHeight": "1.6",
+                                "fontWeight": "600"
+                            }
+                        ],
+                        "display-lg": [
+                            "48px",
+                            {
+                                "lineHeight": "1.2",
+                                "letterSpacing": "-0.02em",
+                                "fontWeight": "900"
+                            }
+                        ]
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        /* Ambient Glow & Utilities */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 2px solid var(--tw-colors-outline-variant);
+            box-shadow: 4px 4px 0px 0px var(--tw-colors-primary);
+        }
+
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+
+<body
+    class="bg-background text-on-background font-body-md text-body-md antialiased selection:bg-primary-container selection:text-on-primary-container">
+    <div class="flex h-screen overflow-hidden">
+        <!-- SideNav (Desktop) -->
+        <nav
+            class="hidden md:flex flex-col h-screen w-64 fixed left-0 top-0 bg-surface dark:bg-surface-container border-r-2 border-outline-variant shadow-none p-gutter gap-4 z-40">
+            <!-- Header -->
+            <div class="flex items-center gap-4 px-4 py-6">
+                <div
+                    class="w-12 h-12 rounded-xl bg-primary-container flex items-center justify-center text-on-primary-container font-display-lg text-display-lg-mobile border-2 border-primary shadow-[2px_2px_0px_0px_var(--tw-colors-primary)]">
+                    N
+                </div>
+                <div>
+                    <h2 class="font-headline-md text-headline-md text-primary font-black tracking-tight">Nailly</h2>
+                    <p class="font-label-bold text-label-bold text-on-surface-variant">Management</p>
+                </div>
+            </div>
+            <!-- CTA -->
+            <div class="px-2 mb-4">
+                <button
+                    class="w-full bg-primary text-on-primary rounded-xl py-3 flex items-center justify-center gap-2 font-label-bold text-label-bold border-2 border-primary shadow-[4px_4px_0px_0px_var(--tw-colors-on-surface)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all duration-200">
+                    <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">add</span>
+                    จองคิวใหม่
+                </button>
+            </div>
+            <!-- Navigation Links -->
+            <div class="flex-1 space-y-2">
+                <!-- Inactive -->
+                <a class="text-on-surface-variant hover:bg-surface-container-high flex items-center gap-3 px-4 py-3 rounded-lg transition-transform hover:translate-x-1 cursor-pointer active:scale-[0.98]"
+                    href="#">
+                    <span class="material-symbols-outlined">dashboard</span>
+                    <span class="font-label-bold text-label-bold">ภาพรวม</span>
+                </a>
+                <!-- Active -->
+                <a class="bg-primary-container text-on-primary-container rounded-lg border-2 border-primary shadow-[4px_4px_0px_0px_#fd933d] translate-x-[-2px] translate-y-[-2px] flex items-center gap-3 px-4 py-3 hover:translate-x-1 transition-transform cursor-pointer active:scale-[0.98]"
+                    href="#">
+                    <span class="material-symbols-outlined"
+                        style="font-variation-settings: 'FILL' 1;">calendar_today</span>
+                    <span class="font-label-bold text-label-bold">การนัดหมาย</span>
+                </a>
+                <!-- Inactive -->
+                <a class="text-on-surface-variant hover:bg-surface-container-high flex items-center gap-3 px-4 py-3 rounded-lg transition-transform hover:translate-x-1 cursor-pointer active:scale-[0.98]"
+                    href="#">
+                    <span class="material-symbols-outlined">brush</span>
+                    <span class="font-label-bold text-label-bold">บริการ</span>
+                </a>
+                <!-- Inactive -->
+                <a class="text-on-surface-variant hover:bg-surface-container-high flex items-center gap-3 px-4 py-3 rounded-lg transition-transform hover:translate-x-1 cursor-pointer active:scale-[0.98]"
+                    href="#">
+                    <span class="material-symbols-outlined">group</span>
+                    <span class="font-label-bold text-label-bold">ลูกค้า</span>
+                </a>
+                <!-- Inactive -->
+                <a class="text-on-surface-variant hover:bg-surface-container-high flex items-center gap-3 px-4 py-3 rounded-lg transition-transform hover:translate-x-1 cursor-pointer active:scale-[0.98]"
+                    href="#">
+                    <span class="material-symbols-outlined">assessment</span>
+                    <span class="font-label-bold text-label-bold">รายงาน</span>
+                </a>
+            </div>
+            <!-- Footer Links -->
+            <div class="mt-auto space-y-2 border-t-2 border-outline-variant pt-4">
+                <a class="text-on-surface-variant hover:bg-surface-container-high flex items-center gap-3 px-4 py-3 rounded-lg transition-transform hover:translate-x-1 cursor-pointer"
+                    href="#">
+                    <span class="material-symbols-outlined">settings</span>
+                    <span class="font-label-bold text-label-bold">ตั้งค่า</span>
+                </a>
+                <a class="text-on-surface-variant hover:bg-surface-container-high flex items-center gap-3 px-4 py-3 rounded-lg transition-transform hover:translate-x-1 cursor-pointer"
+                    href="#">
+                    <span class="material-symbols-outlined">logout</span>
+                    <span class="font-label-bold text-label-bold">ออกจากระบบ</span>
+                </a>
+            </div>
+        </nav>
+        <!-- TopNavBar (Mobile Only) -->
+        <nav
+            class="md:hidden flex justify-between items-center px-container-margin w-full sticky top-0 z-50 h-16 border-b-2 border-outline-variant bg-surface/80 dark:bg-surface-container/80 backdrop-blur-md">
+            <div class="font-headline-md text-headline-md text-primary dark:text-primary-fixed-dim tracking-tight">
+                Nailly</div>
+            <div class="flex gap-2">
+                <button
+                    class="w-10 h-10 rounded-full hover:bg-primary-fixed/20 transition-colors flex items-center justify-center text-primary dark:text-primary-fixed-dim active:scale-95 duration-100">
+                    <span class="material-symbols-outlined">notifications</span>
+                </button>
+                <button
+                    class="w-10 h-10 rounded-full hover:bg-primary-fixed/20 transition-colors flex items-center justify-center text-primary dark:text-primary-fixed-dim active:scale-95 duration-100">
+                    <span class="material-symbols-outlined">settings</span>
+                </button>
+                <button
+                    class="w-10 h-10 rounded-full hover:bg-primary-fixed/20 transition-colors flex items-center justify-center text-primary dark:text-primary-fixed-dim active:scale-95 duration-100">
+                    <span class="material-symbols-outlined">account_circle</span>
+                </button>
+            </div>
+        </nav>
+        <!-- Main Content -->
+        <main class="flex-1 w-full md:ml-64 pt-6 md:pt-8 px-container-margin pb-12 overflow-y-auto overflow-x-hidden">
+            <div class="max-w-5xl mx-auto space-y-section-gap">
+                <!-- Header Section -->
+                <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+                    <div>
+                        <h1
+                            class="font-display-lg text-display-lg-mobile sm:text-display-lg text-on-surface flex items-baseline gap-3">
+                            การนัดหมาย
+                            <span class="font-headline-md text-headline-md text-outline font-normal">(12)</span>
+                        </h1>
+                    </div>
+                    <button
+                        class="bg-primary text-on-primary px-6 py-3 rounded-xl font-label-bold text-label-bold border-2 border-primary shadow-[4px_4px_0px_0px_var(--tw-colors-on-surface)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all duration-200 flex items-center gap-2 justify-center w-full sm:w-auto">
+                        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">add</span>
+                        เพิ่มนัดหมาย
+                    </button>
+                </div>
+                <!-- Search & Filters -->
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <div class="relative flex-1">
+                        <span
+                            class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">search</span>
+                        <input
+                            class="w-full h-12 pl-12 pr-4 bg-surface border-2 border-outline-variant focus:border-primary focus:ring-0 rounded-xl font-body-md text-body-md transition-all outline-none placeholder:text-outline-variant shadow-[2px_2px_0px_0px_var(--tw-colors-outline-variant)]"
+                            placeholder="ค้นหาชื่อลูกค้า, บริการ..." type="text" />
+                    </div>
+                    <button
+                        class="h-12 px-6 bg-surface border-2 border-outline-variant rounded-xl flex items-center gap-2 hover:bg-surface-variant transition-colors shadow-[2px_2px_0px_0px_var(--tw-colors-outline-variant)] text-on-surface">
+                        <span class="material-symbols-outlined text-outline">tune</span>
+                        <span class="font-label-bold text-label-bold">ตัวกรอง</span>
+                    </button>
+                </div>
+                <!-- Filter Pills -->
+                <div class="flex gap-2 overflow-x-auto hide-scrollbar py-1">
+                    <button
+                        class="px-5 py-2.5 rounded-full bg-primary text-on-primary font-label-bold text-label-bold whitespace-nowrap border-2 border-primary shadow-[2px_2px_0px_0px_var(--tw-colors-on-surface)]">ทั้งหมด</button>
+                    <button
+                        class="px-5 py-2.5 rounded-full bg-surface border-2 border-outline-variant text-on-surface hover:bg-surface-variant transition-colors font-label-bold text-label-bold whitespace-nowrap shadow-[2px_2px_0px_0px_var(--tw-colors-outline-variant)]">ยืนยันแล้ว</button>
+                    <button
+                        class="px-5 py-2.5 rounded-full bg-surface border-2 border-outline-variant text-on-surface hover:bg-surface-variant transition-colors font-label-bold text-label-bold whitespace-nowrap shadow-[2px_2px_0px_0px_var(--tw-colors-outline-variant)]">รอยืนยัน</button>
+                    <button
+                        class="px-5 py-2.5 rounded-full bg-surface border-2 border-outline-variant text-on-surface hover:bg-surface-variant transition-colors font-label-bold text-label-bold whitespace-nowrap shadow-[2px_2px_0px_0px_var(--tw-colors-outline-variant)]">เสร็จสิ้น</button>
+                    <button
+                        class="px-5 py-2.5 rounded-full bg-surface border-2 border-outline-variant text-on-surface hover:bg-surface-variant transition-colors font-label-bold text-label-bold whitespace-nowrap shadow-[2px_2px_0px_0px_var(--tw-colors-outline-variant)]">ยกเลิก</button>
+                </div>
+                <!-- Appointments List -->
+                <div class="space-y-8">
+                    <!-- Group: Today -->
+                    <section class="space-y-4">
+                        <h3 class="font-headline-md text-headline-md text-on-surface flex items-center gap-3">
+                            วันนี้
+                            <span class="h-0.5 flex-1 bg-outline-variant"></span>
+                        </h3>
+                        <!-- Card 1 -->
+                        <div
+                            class="glass-card rounded-[24px] p-2 flex flex-col sm:flex-row items-stretch gap-4 group hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all duration-300 relative overflow-hidden">
+                            <!-- Left: Time Block -->
+                            <div
+                                class="bg-primary-fixed w-full sm:w-28 rounded-[20px] flex flex-row sm:flex-col items-center justify-center p-4 sm:p-0 gap-2 border-2 border-primary/20">
+                                <span class="font-headline-md text-headline-md text-primary font-bold">10:00</span>
+                                <span class="font-label-bold text-label-bold text-primary/70">60 นาที</span>
+                            </div>
+                            <!-- Middle: Details -->
+                            <div class="flex-1 py-3 px-2 sm:px-0 flex flex-col justify-center">
+                                <div class="flex items-center gap-3 mb-1">
+                                    <h4 class="font-body-lg text-body-lg font-bold text-on-surface">คุณ อลิสา</h4>
+                                    <!-- Status Badge -->
+                                    <span
+                                        class="px-3 py-1 rounded-full bg-tertiary-container text-on-tertiary-container font-label-bold text-[11px] tracking-wide border-2 border-tertiary">ยืนยันแล้ว</span>
+                                </div>
+                                <p
+                                    class="text-on-surface-variant font-body-md text-body-md flex items-center gap-2 mb-2">
+                                    <span class="material-symbols-outlined text-[18px]">dry_cleaning</span> Classic Gel
+                                    Manicure
+                                </p>
+                                <div class="flex items-center gap-2 mt-auto">
+                                    <img class="w-6 h-6 rounded-full object-cover border-2 border-outline-variant"
+                                        data-alt="A small circular avatar portrait of a professional salon nail technician, smiling warmly, with a clean and bright white background, studio lighting, high resolution, photorealistic style."
+                                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuA7QAGMLUQp8lXavTAhCH_8Kwgy2BCtbAx2MVSrr8nAaIV05XpoFZhMWnBTFLEn7vs3dB83G3Ox-nAR5zNINOJTjDtsNJz-Soe-4yRkcQ9a-XPcViqPp-Fn_lm6rtUEMmtY6AZ1E_pcrRZ5CL_SY0ycnPAVGJqXp5Nj2-ONvlzv1C_d5stavDpmVcJNVQjw4y5QnNaYNWXdGx8G5tsaaH3F13SRbjiEahPIMTrOKnqZorLdi3eocl4df92SLqZwrNCXsMcFzkUWiZ4" />
+                                    <span class="font-label-bold text-label-bold text-outline">ช่าง: พี่แนน</span>
+                                </div>
+                            </div>
+                            <!-- Right: Actions -->
+                            <div
+                                class="flex sm:flex-col items-center justify-center gap-2 pr-4 pl-2 sm:pl-0 pb-4 sm:pb-0">
+                                <button
+                                    class="w-10 h-10 rounded-xl bg-surface-container hover:bg-primary-container border-2 border-outline-variant hover:border-primary text-primary hover:text-on-primary-container transition-colors flex items-center justify-center shadow-[2px_2px_0px_0px_var(--tw-colors-outline-variant)]"
+                                    title="แก้ไข">
+                                    <span class="material-symbols-outlined text-[20px]">edit</span>
+                                </button>
+                                <button
+                                    class="w-10 h-10 rounded-xl bg-surface-container hover:bg-surface-variant border-2 border-outline-variant text-on-surface-variant transition-colors flex items-center justify-center shadow-[2px_2px_0px_0px_var(--tw-colors-outline-variant)]"
+                                    title="ตัวเลือกเพิ่มเติม">
+                                    <span class="material-symbols-outlined text-[20px]">more_vert</span>
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Card 2 -->
+                        <div
+                            class="glass-card rounded-[24px] p-2 flex flex-col sm:flex-row items-stretch gap-4 group hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all duration-300 relative overflow-hidden">
+                            <div
+                                class="bg-surface-variant w-full sm:w-28 rounded-[20px] flex flex-row sm:flex-col items-center justify-center p-4 sm:p-0 gap-2 border-2 border-outline-variant">
+                                <span class="font-headline-md text-headline-md text-on-surface font-bold">13:30</span>
+                                <span class="font-label-bold text-label-bold text-outline">90 นาที</span>
+                            </div>
+                            <div class="flex-1 py-3 px-2 sm:px-0 flex flex-col justify-center">
+                                <div class="flex items-center gap-3 mb-1">
+                                    <h4 class="font-body-lg text-body-lg font-bold text-on-surface">คุณ เมย์</h4>
+                                    <span
+                                        class="px-3 py-1 rounded-full bg-secondary-container text-on-secondary-container font-label-bold text-[11px] tracking-wide border-2 border-secondary">รอยืนยัน</span>
+                                </div>
+                                <p
+                                    class="text-on-surface-variant font-body-md text-body-md flex items-center gap-2 mb-2">
+                                    <span class="material-symbols-outlined text-[18px]">brush</span> Spa Pedicure &amp;
+                                    Nail Art
+                                </p>
+                                <div class="flex items-center gap-2 mt-auto">
+                                    <img class="w-6 h-6 rounded-full object-cover border-2 border-outline-variant"
+                                        data-alt="A small circular avatar portrait of a young salon staff member, looking professional and friendly, soft lighting, pastel background, photorealistic style."
+                                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBSAh0ZD8Z3OWmftpMzXdcVcHr7UR5OmAKt2Gx8Qw39lvFd2FGQ7SCniXtinNSggIsRKilR3we0ZyAQsNLo9dLYirupmuHyuDs88Uk7K6fAybWPuWD81QjkOxR-TDlPsahC0tW9xhL5P9RNlxBK6MZcl3q7gam9IZmk7bUmbXsx9-d4B7xM-iI6jo4TSZgRv7_xEwiwX-0xrz09D1I9MJHZP5ITzu2IpxOjb9Tt-raoDorUI4_6i5MonJKu_IGE-6zZIHfAyHP69Xs" />
+                                    <span class="font-label-bold text-label-bold text-outline">ช่าง: น้องมายด์</span>
+                                </div>
+                            </div>
+                            <div
+                                class="flex sm:flex-col items-center justify-center gap-2 pr-4 pl-2 sm:pl-0 pb-4 sm:pb-0">
+                                <button
+                                    class="w-10 h-10 rounded-xl bg-primary text-on-primary border-2 border-primary hover:translate-x-1 hover:translate-y-1 transition-transform flex items-center justify-center shadow-[2px_2px_0px_0px_var(--tw-colors-on-surface)]"
+                                    title="ยืนยัน">
+                                    <span class="material-symbols-outlined text-[20px]">check</span>
+                                </button>
+                                <button
+                                    class="w-10 h-10 rounded-xl bg-surface-container hover:bg-surface-variant border-2 border-outline-variant text-on-surface-variant transition-colors flex items-center justify-center shadow-[2px_2px_0px_0px_var(--tw-colors-outline-variant)]"
+                                    title="แก้ไข">
+                                    <span class="material-symbols-outlined text-[20px]">edit</span>
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+                    <!-- Group: Tomorrow -->
+                    <section class="space-y-4">
+                        <h3 class="font-headline-md text-headline-md text-on-surface flex items-center gap-3">
+                            พรุ่งนี้
+                            <span class="h-0.5 flex-1 bg-outline-variant"></span>
+                        </h3>
+                        <!-- Card 3 -->
+                        <div
+                            class="glass-card rounded-[24px] p-2 flex flex-col sm:flex-row items-stretch gap-4 group hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all duration-300 relative overflow-hidden opacity-90">
+                            <div
+                                class="bg-surface-container w-full sm:w-28 rounded-[20px] flex flex-row sm:flex-col items-center justify-center p-4 sm:p-0 gap-2 border-2 border-outline-variant">
+                                <span class="font-headline-md text-headline-md text-on-surface font-bold">11:00</span>
+                                <span class="font-label-bold text-label-bold text-outline">60 นาที</span>
+                            </div>
+                            <div class="flex-1 py-3 px-2 sm:px-0 flex flex-col justify-center">
+                                <div class="flex items-center gap-3 mb-1">
+                                    <h4 class="font-body-lg text-body-lg font-bold text-on-surface">คุณ เจน</h4>
+                                    <span
+                                        class="px-3 py-1 rounded-full bg-tertiary-container text-on-tertiary-container font-label-bold text-[11px] tracking-wide border-2 border-tertiary">ยืนยันแล้ว</span>
+                                </div>
+                                <p
+                                    class="text-on-surface-variant font-body-md text-body-md flex items-center gap-2 mb-2">
+                                    <span class="material-symbols-outlined text-[18px]">spa</span> Hand Spa &amp; Mask
+                                </p>
+                                <div class="flex items-center gap-2 mt-auto">
+                                    <img class="w-6 h-6 rounded-full object-cover border-2 border-outline-variant"
+                                        data-alt="A small circular avatar portrait of a senior salon therapist, calm expression, natural daylight setting, high-end photography, realistic."
+                                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBbgJq7QTa0oC_h4oeBAp7V-Tp-T4ahQQvh4Z69AJ5tdCmV3Kf4_1zfmhGmnonsEVjBbmth29GVbqkSibkXvh2d7dlm5uCH6l1c9NyDGC6BpcIXydWJszqjA_VhQGufBsqV02zNIlbHtpt7EIL9lzYa1D1UH3x_PVGdvcca4Y_2JT-mkmA7IyeWWBzsXkTOQmYEOq7fw-uxd_3gfG0y-OukyyA0q1H-fQ2aCBbkFxpvcQz59-MnX9dMBIFNEVNci8isFU1hNILFA0Q" />
+                                    <span class="font-label-bold text-label-bold text-outline">ช่าง: พี่แนน</span>
+                                </div>
+                            </div>
+                            <div
+                                class="flex sm:flex-col items-center justify-center gap-2 pr-4 pl-2 sm:pl-0 pb-4 sm:pb-0">
+                                <button
+                                    class="w-10 h-10 rounded-xl bg-surface-container hover:bg-primary-container border-2 border-outline-variant hover:border-primary text-primary hover:text-on-primary-container transition-colors flex items-center justify-center shadow-[2px_2px_0px_0px_var(--tw-colors-outline-variant)]"
+                                    title="แก้ไข">
+                                    <span class="material-symbols-outlined text-[20px]">edit</span>
+                                </button>
+                                <button
+                                    class="w-10 h-10 rounded-xl bg-surface-container hover:bg-surface-variant border-2 border-outline-variant text-on-surface-variant transition-colors flex items-center justify-center shadow-[2px_2px_0px_0px_var(--tw-colors-outline-variant)]"
+                                    title="ตัวเลือกเพิ่มเติม">
+                                    <span class="material-symbols-outlined text-[20px]">more_vert</span>
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+
+</html>

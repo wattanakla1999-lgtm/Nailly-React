@@ -1,108 +1,99 @@
+import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
 import {
   Calendar,
   Users,
   Scissors,
   TrendingUp,
-  ChevronRight,
-  Clock,
+  ArrowUp,
+  Sparkles,
   Star,
+  Plus,
 } from "lucide-react"
-import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/useAuth"
 import { cn } from "@/lib/utils"
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+// ─── Stat Card ───────────────────────────────────────────────────────────────
 
 interface StatCardProps {
   icon: React.ReactNode
   label: string
   value: string
-  sub: string
+  sub?: React.ReactNode
   color: string
   to?: string
 }
-
-interface AppointmentItem {
-  name: string
-  service: string
-  time: string
-  status: "confirmed" | "pending" | "done"
-}
-
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const STATUS_STYLES: Record<AppointmentItem["status"], string> = {
-  confirmed: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400",
-  pending: "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400",
-  done: "bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400",
-}
-
-const STATUS_LABEL: Record<AppointmentItem["status"], string> = {
-  confirmed: "ยืนยัน",
-  pending: "รอยืนยัน",
-  done: "เสร็จ",
-}
-
-const MOCK_APPOINTMENTS: AppointmentItem[] = [
-  { name: "สมใจ รักสวย", service: "Gel Manicure + Nail Art", time: "10:00", status: "confirmed" },
-  { name: "นิดา มีสุข", service: "Pedicure Classic", time: "11:30", status: "pending" },
-  { name: "วรรณา สวยงาม", service: "French Manicure", time: "13:00", status: "confirmed" },
-  { name: "พิมพ์ใจ รุ่งเรือง", service: "Nail Extension", time: "14:30", status: "done" },
-  { name: "กนกวรรณ ดาวแดง", service: "Gel Pedicure", time: "15:30", status: "pending" },
-]
-
-const POPULAR_SERVICES = [
-  { name: "Gel Manicure", count: 42, percent: 80 },
-  { name: "Nail Art", count: 31, percent: 60 },
-  { name: "Pedicure", count: 28, percent: 54 },
-  { name: "Nail Extension", count: 19, percent: 37 },
-]
-
-// ─── Sub-components ───────────────────────────────────────────────────────────
 
 function StatCard({ icon, label, value, sub, color, to }: StatCardProps) {
   const navigate = useNavigate()
   return (
     <div
       onClick={() => to && navigate(to)}
-      className={cn(
-        "rounded-2xl border border-neutral-100 bg-white p-4 sm:p-6 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 dark:border-neutral-800 dark:bg-neutral-900",
-        to && "cursor-pointer"
-      )}
+      className="y2k-card p-5 flex flex-col gap-3 relative overflow-hidden group cursor-pointer"
     >
-      <div className="flex items-start justify-between">
-        <div className={cn("flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl", color)}>
+      <div className="flex items-center gap-3">
+        <div className={`w-12 h-12 rounded-xl flex items-center justify-center border-2 shadow-[2px_2px_0px_currentColor] ${color}`}>
           {icon}
         </div>
-        <ChevronRight className="h-4 w-4 text-neutral-300 dark:text-neutral-600" />
+        <span className="font-bold text-xs text-on-surface uppercase tracking-wide">{label}</span>
       </div>
-      <div className="mt-3 sm:mt-4">
-        <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 truncate">{label}</p>
-        <p className="mt-1 text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-white">{value}</p>
-        <p className="mt-1 text-xs text-neutral-400 dark:text-neutral-500 truncate">{sub}</p>
+      <div className="flex items-baseline gap-3 mt-2">
+        <span className="font-black text-3xl text-on-surface">{value}</span>
+        {sub}
       </div>
     </div>
   )
 }
 
-function AppointmentRow({ name, service, time, status }: AppointmentItem) {
+// ─── Upcoming Appointment Row ──────────────────────────────────────────────────
+
+interface AppointmentRowProps {
+  name: string
+  service: string
+  time: string
+  status: "active" | "pending" | "confirmed"
+  avatarText?: string
+  imgUrl?: string
+}
+
+const STATUS_CONFIG = {
+  active: {
+    label: "กำลังรับบริการ",
+    styles: "bg-tertiary-container text-tertiary border-tertiary shadow-[2px_2px_0px_#a78bfa]",
+  },
+  pending: {
+    label: "รอยืนยัน",
+    styles: "bg-surface-variant text-on-surface-variant border-outline-variant shadow-[2px_2px_0px_#c7d2fe]",
+  },
+  confirmed: {
+    label: "ยืนยันแล้ว",
+    styles: "bg-primary-container text-primary border-primary shadow-[2px_2px_0px_#818CF8]",
+  },
+}
+
+function AppointmentRow({ name, service, time, status, avatarText, imgUrl }: AppointmentRowProps) {
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-neutral-100 bg-white px-3 py-3 sm:px-4 dark:border-neutral-800 dark:bg-neutral-900">
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-rose-100 text-rose-500 font-semibold text-sm dark:bg-rose-950 dark:text-rose-400">
-        {name.charAt(0)}
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold text-neutral-900 dark:text-white">{name}</p>
-        <p className="truncate text-xs text-neutral-500 dark:text-neutral-400">{service}</p>
-      </div>
-      <div className="flex shrink-0 flex-col items-end gap-1 sm:flex-row sm:items-center sm:gap-3">
-        <div className="flex items-center gap-1 text-xs text-neutral-400">
-          <Clock className="h-3 w-3" />
-          {time}
+    <div className="flex items-center gap-4 p-4 hover:bg-surface-variant/40 rounded-xl transition-all duration-200 border-2 border-transparent hover:border-outline-variant group">
+      {imgUrl ? (
+        <img
+          alt={name}
+          className="w-14 h-14 rounded-xl object-cover shrink-0 border-2 border-primary shadow-[2px_2px_0px_#818CF8]"
+          src={imgUrl}
+        />
+      ) : (
+        <div className="w-14 h-14 rounded-xl shrink-0 border-2 border-primary shadow-[2px_2px_0px_#818CF8] flex items-center justify-center bg-primary-container text-primary font-black text-xl">
+          {avatarText || name.charAt(0)}
         </div>
-        <span className={cn("rounded-full px-2 py-0.5 text-xs font-medium", STATUS_STYLES[status])}>
-          {STATUS_LABEL[status]}
+      )}
+      <div className="flex-grow min-w-0">
+        <h4 className="font-bold text-base sm:text-lg text-on-surface truncate">{name}</h4>
+        <p className="font-medium text-xs text-on-surface-variant truncate mt-0.5">{service}</p>
+      </div>
+      <div className="text-right shrink-0 flex flex-col items-end">
+        <p className="font-black text-base sm:text-lg text-on-surface">{time} น.</p>
+        <span className={`inline-block mt-2 font-bold text-[10px] sm:text-xs px-2.5 py-1 rounded-lg border-2 uppercase ${STATUS_CONFIG[status].styles}`}>
+          {STATUS_CONFIG[status].label}
         </span>
       </div>
     </div>
@@ -114,8 +105,20 @@ function AppointmentRow({ name, service, time, status }: AppointmentItem) {
 export function DashboardPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const [customAppointments, setCustomAppointments] = useState<any[]>([])
 
-  const today = new Date().toLocaleDateString("th-TH", {
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("nailly_custom_appointments")
+      if (stored) {
+        setCustomAppointments(JSON.parse(stored))
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  }, [])
+
+  const todayStr = new Date().toLocaleDateString("th-TH", {
     weekday: "long",
     year: "numeric",
     month: "long",
@@ -123,117 +126,158 @@ export function DashboardPage() {
   })
 
   return (
-    <>
-      {/* Welcome header */}
-      <div className="mb-6 flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h1 className="text-xl sm:text-2xl font-bold text-neutral-900 dark:text-white truncate">
-            สวัสดี, {user?.name} 👋
-          </h1>
-          <p className="mt-1 text-xs sm:text-sm text-neutral-500 dark:text-neutral-400">{today}</p>
+    <div className="flex flex-col gap-8">
+      {/* Welcome Header */}
+      <section className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <h2 className="text-3xl font-black text-on-surface tracking-tight">สวัสดี, คุณ{user?.name || "มินนี่"} 👋</h2>
+          <p className="text-base text-on-surface-variant mt-1 font-semibold">{todayStr}</p>
         </div>
         <Button
           onClick={() => navigate("/appointments")}
-          className="shrink-0 gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-md shadow-rose-200/50 hover:from-rose-600 hover:to-pink-600 dark:shadow-rose-900/20 text-sm"
+          className="w-full sm:w-auto bg-gradient-to-r from-[#818CF8] to-[#FB923C] text-white rounded-xl py-3 px-6 font-bold border-2 border-on-surface shadow-[4px_4px_0px_0px_#1e1b4b] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#1e1b4b] active:scale-95 transition-all flex items-center justify-center gap-2"
         >
-          <Calendar className="h-4 w-4" />
-          <span className="hidden sm:inline">เพิ่มนัดหมาย</span>
-          <span className="sm:hidden">เพิ่ม</span>
+          <Plus className="h-5 w-5 stroke-[3px]" />
+          เพิ่มนัดหมาย
         </Button>
-      </div>
+      </section>
 
-      {/* Stats Grid */}
-      <div className="mb-6 sm:mb-8 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+      {/* 4 Stat Cards */}
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         <StatCard
-          icon={<Calendar className="h-5 w-5 sm:h-6 sm:w-6 text-rose-500" />}
+          icon={<Calendar className="h-6 w-6" />}
           label="นัดหมายวันนี้"
           value="12"
-          sub="↑ 3 จากเมื่อวาน"
-          color="bg-rose-100 dark:bg-rose-950"
+          sub={
+            <span className="font-bold text-xs text-secondary bg-secondary-container px-2.5 py-0.5 rounded-lg border-2 border-secondary shadow-[2px_2px_0px_#FB923C] flex items-center gap-0.5">
+              <ArrowUp className="h-3 w-3 stroke-[3px]" /> 3
+            </span>
+          }
+          color="bg-primary-container border-primary text-primary"
           to="/appointments"
         />
         <StatCard
-          icon={<Users className="h-5 w-5 sm:h-6 sm:w-6 text-violet-500" />}
+          icon={<Users className="h-6 w-6" />}
           label="ลูกค้าทั้งหมด"
           value="248"
-          sub="↑ 5 คนใหม่สัปดาห์นี้"
-          color="bg-violet-100 dark:bg-violet-950"
+          sub={
+            <span className="font-bold text-xs text-tertiary bg-tertiary-container px-2.5 py-0.5 rounded-lg border-2 border-tertiary shadow-[2px_2px_0px_#a78bfa] flex items-center gap-0.5">
+              <ArrowUp className="h-3 w-3 stroke-[3px]" /> 5 ใหม่
+            </span>
+          }
+          color="bg-secondary-container border-secondary text-secondary"
           to="/customers"
         />
         <StatCard
-          icon={<Scissors className="h-5 w-5 sm:h-6 sm:w-6 text-teal-500" />}
+          icon={<Scissors className="h-6 w-6" />}
           label="บริการที่ให้"
           value="8"
-          sub="ประเภทบริการ"
-          color="bg-teal-100 dark:bg-teal-950"
+          sub={
+            <span className="font-bold text-xs text-on-surface-variant bg-surface-variant px-2.5 py-0.5 rounded-lg border-2 border-outline-variant">
+              ประเภท
+            </span>
+          }
+          color="bg-tertiary-container border-tertiary text-tertiary"
           to="/services"
         />
         <StatCard
-          icon={<TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 text-amber-500" />}
+          icon={<TrendingUp className="h-6 w-6" />}
           label="รายได้วันนี้"
           value="฿3,200"
-          sub="เป้าหมาย ฿5,000"
-          color="bg-amber-100 dark:bg-amber-950"
+          color="bg-gradient-to-br from-[#818CF8] to-[#FB923C] border-on-surface text-white"
           to="/reports"
         />
-      </div>
+      </section>
 
-      {/* Main grid */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Appointments */}
-        <div className="lg:col-span-2">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-base sm:text-lg font-semibold text-neutral-900 dark:text-white">
-              นัดหมายวันนี้
-            </h2>
+      {/* Main Grid */}
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-2">
+        {/* Left: นัดหมายวันนี้ */}
+        <div className="lg:col-span-2 y2k-card flex flex-col p-0 overflow-hidden">
+          <div className="p-5 border-b-2 border-outline-variant flex justify-between items-center bg-surface-variant/30 rounded-t-xl">
+            <h3 className="font-black text-xl text-on-surface uppercase tracking-tight">นัดหมายวันนี้</h3>
             <button
               onClick={() => navigate("/appointments")}
-              className="text-sm text-rose-500 hover:text-rose-600 transition-colors"
+              className="text-primary font-bold text-sm hover:text-secondary underline decoration-2 underline-offset-4 transition-colors"
             >
-              ดูทั้งหมด →
+              ดูทั้งหมด
             </button>
           </div>
-          <div className="space-y-2 sm:space-y-3">
-            {MOCK_APPOINTMENTS.map((apt) => (
-              <AppointmentRow key={`${apt.name}-${apt.time}`} {...apt} />
+          <div className="flex flex-col p-4 gap-4 bg-white">
+            {customAppointments.map((apt, idx) => (
+              <AppointmentRow
+                key={`custom-${idx}`}
+                name={`คุณ ${apt.name}`}
+                service={apt.service}
+                time={apt.time}
+                status={apt.status}
+                avatarText={apt.name.charAt(0)}
+              />
             ))}
+            <AppointmentRow
+              name="คุณพิม พิมประภา"
+              service="ต่อเล็บเจล + เพ้นท์ลาย"
+              time="10:00"
+              status="active"
+              imgUrl="https://lh3.googleusercontent.com/aida-public/AB6AXuDhNpXZyacwG5q2S5HlwjiZ5Mr-kBxeh9rY_oUy58fKAWSFtkjevptHv8BZrlthTr6wg7GGomNMCZQTfThLURSNaBXGhfZZJROnvTIP2ntFy4C6Ki45ZQIbBf5QOswezsekhCTgNbSzCTFdRG1OnKpYLlrtZcQPsW-r7RFD-Jb4mLUjd9-04tEk0pivo5BZMJwYqbM23DDZBKa2jmAEYE83YpYioDWqJWG6a7OeZqZA_E-gtCgxHg4d0Brc9NeXivDDo1v127RIdQ0"
+            />
+            <AppointmentRow
+              name="คุณอรัญญา"
+              service="สปามือและเท้า + ทาสีเจล"
+              time="13:30"
+              status="pending"
+              imgUrl="https://lh3.googleusercontent.com/aida-public/AB6AXuBQAdLpKVRx3Ilt3FqqiqbjG-RzEzl7HlLcLasPv7TGtAuv9KATFEynIMpQOWpsDXxY5iS7ARBNMX_U0_5cqobN45jvBS4DC27DlwJUYafl1YgAGu73S0Zqc5lDQTcwVeVVyBH50jdAw1pTiUBXclHUTfuLyEf7Ktyrnb2Jnn8ANLWxTI9yjk6VjbcxeL5DSBK9SxuaTXQu_FP3C3UmMRcQ0-R8IWvtm3dCN6sxTlVkrtfpFfjY8uqISUTI0Zkbs85UMJuLYgy_ncU"
+            />
+            <AppointmentRow
+              name="คุณเจนนิเฟอร์"
+              service="ถอดเล็บเจล"
+              time="15:00"
+              status="confirmed"
+              avatarText="จ"
+            />
+            <AppointmentRow
+              name="คุณลูกศร"
+              service="ทาสีเจลมือ (สีพื้น)"
+              time="16:30"
+              status="confirmed"
+              imgUrl="https://lh3.googleusercontent.com/aida-public/AB6AXuDaeplGl0eg0XDgBHNcLjjTKmTkE9MaJ7D28RnajVemY6abga4I7eDODXu_WoAVgNZinJJL5pH4yn-bFtRPSZTta3I2jnRerFLE-jQBxz7jJ5fXBBjX42MKq3TrXFXuI2ZA52SUoMHEm5ABUNCo_tiKnx8I4YuOEiyi6CqCr-u4O7FV_AuXjxjYdw_2u7-gBNJtUoMhVMYPV-8fWmCC46lgSqjThCweVOAXBLmP0R4_RE9sBy4PBuldTabvod1hemYU3w2bGCARW_Y"
+            />
           </div>
         </div>
 
-        {/* Sidebar — Popular services */}
-        <div>
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-base sm:text-lg font-semibold text-neutral-900 dark:text-white">
-              บริการยอดนิยม
-            </h2>
-            <button
-              onClick={() => navigate("/services")}
-              className="text-sm text-rose-500 hover:text-rose-600 transition-colors"
-            >
-              ดูทั้งหมด →
-            </button>
+        {/* Right: บริการยอดนิยม */}
+        <div className="lg:col-span-1 y2k-card flex flex-col p-5 bg-surface-variant/20">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="font-black text-xl text-on-surface uppercase tracking-tight">บริการยอดนิยม</h3>
+            <Sparkles className="h-5 w-5 text-primary" />
           </div>
-          <div className="space-y-3">
-            {POPULAR_SERVICES.map((svc) => (
-              <div key={svc.name} className="rounded-xl border border-neutral-100 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
-                <div className="flex justify-between text-sm mb-2">
-                  <span className="font-medium text-neutral-900 dark:text-white">{svc.name}</span>
-                  <span className="flex items-center gap-1 text-neutral-400 dark:text-neutral-500">
-                    <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                    {svc.count}
-                  </span>
+          <div className="flex flex-col gap-6">
+            {[
+              { name: "ทาสีเจลมือ", rate: 4.9, count: 124, percent: 45, color: "from-[#818CF8] to-[#FB923C]" },
+              { name: "สปามือ-เท้า", rate: 4.8, count: 89, percent: 30, color: "bg-[#FB923C]" },
+              { name: "ต่อเล็บ PVC", rate: 4.7, count: 56, percent: 15, color: "bg-[#a78bfa]" },
+              { name: "เพ้นท์ลายศิลปะ", rate: 4.9, count: 42, percent: 10, color: "bg-[#818CF8]" },
+            ].map((svc) => (
+              <div key={svc.name}>
+                <div className="flex justify-between items-end mb-2">
+                  <div>
+                    <h4 className="font-bold text-sm sm:text-base text-on-surface">{svc.name}</h4>
+                    <div className="flex items-center gap-1 mt-0.5">
+                      <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                      <span className="font-bold text-xs text-on-surface-variant">
+                        {svc.rate} ({svc.count})
+                      </span>
+                    </div>
+                  </div>
+                  <span className="font-black text-base text-primary">{svc.percent}%</span>
                 </div>
-                <div className="h-2 rounded-full bg-neutral-100 dark:bg-neutral-800">
-                  <div
-                    className="h-2 rounded-full bg-gradient-to-r from-rose-400 to-pink-400 transition-all"
-                    style={{ width: `${svc.percent}%` }}
-                  />
+                <div className="w-full bg-surface-variant rounded-full h-3 border-2 border-outline-variant overflow-hidden">
+                  <div className={cn("h-full rounded-full", svc.color)} style={{ width: `${svc.percent}%` }} />
                 </div>
               </div>
             ))}
           </div>
         </div>
-      </div>
-    </>
+      </section>
+    </div>
   )
 }

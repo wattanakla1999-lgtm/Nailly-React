@@ -7,23 +7,26 @@ import { AppointmentsPage } from "@/pages/AppointmentsPage"
 import { ServicesPage } from "@/pages/ServicesPage"
 import { CustomersPage } from "@/pages/CustomersPage"
 import { ReportsPage } from "@/pages/ReportsPage"
+import { SettingsPage } from "@/pages/SettingsPage"
+import { CustomerBookingPage } from "@/pages/CustomerBookingPage"
 
 /**
  * Application route definitions.
  *
  * Route structure:
- *   /                  → Redirect to /dashboard
- *   /login             → Login page
+ *   /                  → Customer Booking Flow (Public)
+ *   /login             → Staff Login Page
  *   /dashboard         → Protected: ภาพรวม
  *   /appointments      → Protected: นัดหมาย
  *   /services          → Protected: บริการ
  *   /customers         → Protected: ลูกค้า
  *   /reports           → Protected: รายงาน
+ *   /settings          → Protected: ตั้งค่าร้าน
  */
 export const router = createBrowserRouter([
   {
     path: "/",
-    element: <Navigate to="/dashboard" replace />,
+    element: <CustomerBookingPage />,
   },
   {
     path: "/login",
@@ -41,12 +44,13 @@ export const router = createBrowserRouter([
           { path: "/services",      element: <ServicesPage /> },
           { path: "/customers",     element: <CustomersPage /> },
           { path: "/reports",       element: <ReportsPage /> },
+          { path: "/settings",      element: <SettingsPage /> },
         ],
       },
     ],
   },
   {
     path: "*",
-    element: <Navigate to="/dashboard" replace />,
+    element: <Navigate to="/" replace />,
   },
 ])

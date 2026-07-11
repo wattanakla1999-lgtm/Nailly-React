@@ -11,7 +11,7 @@ interface Service {
   nameTh: string
   category: string
   price: number
-  duration: number // minutes
+  duration: number
   popular: boolean
   description: string
   emoji: string
@@ -28,8 +28,6 @@ const MOCK_SERVICES: Service[] = [
   { id: "6", name: "Nail Extension", nameTh: "ต่อเล็บ", category: "extension", price: 900, duration: 120, popular: false, description: "ต่อเล็บอคริลิกหรือเจล ยาวตามต้องการ", emoji: "🌸" },
   { id: "7", name: "Pedicure Classic", nameTh: "เพดิเกียร์คลาสสิก", category: "pedicure", price: 350, duration: 60, popular: false, description: "ดูแลเล็บเท้าพร้อมทาสี", emoji: "🦶" },
   { id: "8", name: "Gel Pedicure", nameTh: "เจลเพดิเกียร์", category: "pedicure", price: 480, duration: 75, popular: true, description: "เจลเล็บเท้าติดทนนาน", emoji: "👣" },
-  { id: "9", name: "Nail Removal", nameTh: "ถอดเจล / ถอดต่อเล็บ", category: "care", price: 150, duration: 30, popular: false, description: "ถอดเจลหรือเล็บต่อด้วยความระมัดระวัง", emoji: "🧹" },
-  { id: "10", name: "Nail Spa", nameTh: "สปาเล็บ", category: "care", price: 350, duration: 60, popular: false, description: "ดูแลมือและเล็บด้วยครีมบำรุง", emoji: "🌿" },
 ]
 
 const CATEGORIES = [
@@ -38,62 +36,57 @@ const CATEGORIES = [
   { value: "pedicure", label: "เพดิเกียร์" },
   { value: "art", label: "เพนท์ลวดลาย" },
   { value: "extension", label: "ต่อเล็บ" },
-  { value: "care", label: "ดูแลเล็บ" },
 ]
-
-// ─── Service Card ─────────────────────────────────────────────────────────────
 
 function ServiceCard({ service }: { service: Service }) {
   return (
-    <div className="group relative rounded-2xl border border-neutral-100 bg-white p-5 shadow-sm transition-all hover:shadow-lg hover:-translate-y-0.5 dark:border-neutral-800 dark:bg-neutral-900">
+    <div className="y2k-card p-5 flex flex-col gap-4 relative overflow-hidden group">
       {service.popular && (
-        <div className="absolute -top-2 right-4 flex items-center gap-1 rounded-full bg-amber-400 px-2.5 py-0.5 text-[10px] font-bold text-white shadow-sm">
-          <Star className="h-2.5 w-2.5 fill-white" />
+        <div className="absolute -top-1.5 right-4 flex items-center gap-1 rounded-full bg-amber-400 border-2 border-on-surface px-2.5 py-0.5 text-[9px] font-black text-white shadow-[2px_2px_0px_#1e1b4b]">
+          <Star className="h-3.5 w-3.5 fill-white text-white" />
           ยอดนิยม
         </div>
       )}
 
-      <div className="mb-3 flex items-start gap-3">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-rose-50 text-2xl dark:bg-rose-950/30">
+      <div className="flex items-start gap-3">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary-container border-2 border-primary text-2xl shadow-[2px_2px_0px_#818CF8]">
           {service.emoji}
         </div>
         <div className="min-w-0">
-          <h3 className="font-semibold text-neutral-900 dark:text-white">{service.nameTh}</h3>
-          <p className="text-xs text-neutral-400">{service.name}</p>
+          <h3 className="font-bold text-neutral-900 dark:text-white truncate">{service.nameTh}</h3>
+          <p className="text-xs text-neutral-400 font-semibold truncate">{service.name}</p>
         </div>
       </div>
 
-      <p className="mb-4 text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed">
+      <p className="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed font-semibold">
         {service.description}
       </p>
 
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3 text-xs text-neutral-400">
+      <div className="mt-auto flex items-center justify-between border-t border-dashed border-outline-variant/60 pt-3">
+        <div className="flex items-center gap-3 text-xs text-neutral-400 font-bold">
           <span className="flex items-center gap-1">
-            <Clock className="h-3 w-3" />
+            <Clock className="h-3.5 w-3.5" />
             {service.duration} น.
           </span>
           <span className="flex items-center gap-1">
-            <Tag className="h-3 w-3" />
-            {CATEGORIES.find((c) => c.value === service.category)?.label}
+            <Tag className="h-3.5 w-3.5" />
+            {CATEGORIES.find((c) => c.value === service.category)?.label || "บริการ"}
           </span>
         </div>
-        <span className="text-lg font-bold text-rose-500">฿{service.price.toLocaleString()}</span>
+        <span className="text-lg font-black text-primary">฿{service.price.toLocaleString()}</span>
       </div>
 
-      <div className="mt-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button className="flex-1 rounded-xl border border-neutral-200 bg-neutral-50 py-1.5 text-xs font-medium text-neutral-600 hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-400 transition-colors">
+      <div className="mt-1 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+        <button className="flex-1 rounded-xl border-2 border-outline-variant bg-neutral-50 py-1.5 text-xs font-bold text-neutral-600 hover:bg-neutral-100">
           แก้ไข
         </button>
-        <button className="flex-1 rounded-xl bg-rose-50 py-1.5 text-xs font-medium text-rose-600 hover:bg-rose-100 dark:bg-rose-950/30 dark:text-rose-400 transition-colors">
-          เพิ่มนัดหมาย
+        <button className="flex-1 rounded-xl bg-primary text-on-primary border-2 border-primary py-1.5 text-xs font-bold hover:translate-x-[1px] hover:translate-y-[1px] shadow-[2px_2px_0px_#1e1b4b]">
+          เพิ่มคิว
         </button>
       </div>
     </div>
   )
 }
-
-// ─── Services Page ────────────────────────────────────────────────────────────
 
 export function ServicesPage() {
   const [activeCategory, setActiveCategory] = useState("all")
@@ -108,78 +101,81 @@ export function ServicesPage() {
   })
 
   return (
-    <>
+    <div className="space-y-8">
       {/* Page Header */}
-      <div className="mb-6 flex items-center justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-neutral-900 dark:text-white">บริการ</h1>
-          <p className="mt-0.5 text-sm text-neutral-500 dark:text-neutral-400">
-            {MOCK_SERVICES.length} บริการ
-          </p>
+          <h1 className="text-3xl font-black text-on-surface flex items-baseline gap-3 tracking-tight">
+            บริการ
+            <span className="text-xl text-outline font-normal">({MOCK_SERVICES.length})</span>
+          </h1>
         </div>
-        <Button className="shrink-0 gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-md hover:from-rose-600 hover:to-pink-600 text-sm">
-          <Plus className="h-4 w-4" />
-          <span className="hidden sm:inline">เพิ่มบริการ</span>
-          <span className="sm:hidden">เพิ่ม</span>
+        <Button className="shrink-0 gap-2 rounded-xl bg-gradient-to-r from-primary to-secondary text-white shadow-md border-2 border-on-surface shadow-[4px_4px_0px_0px_#1e1b4b] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#1e1b4b] text-sm font-bold">
+          <Plus className="h-4 w-4 stroke-[3px]" />
+          เพิ่มบริการ
         </Button>
       </div>
 
+      {/* 3 Summary cards */}
+      <div className="grid grid-cols-3 gap-3">
+        {[
+          { label: "บริการทั้งหมด", value: MOCK_SERVICES.length, color: "bg-primary-container border-primary text-primary" },
+          { label: "ราคาเฉลี่ย", value: `฿${Math.round(MOCK_SERVICES.reduce((s, sv) => s + sv.price, 0) / MOCK_SERVICES.length)}`, color: "bg-secondary-container border-secondary text-secondary" },
+          { label: "บริการยอดนิยม", value: MOCK_SERVICES.filter((s) => s.popular).length, color: "bg-tertiary-container border-tertiary text-tertiary" },
+        ].map(({ label, value }) => (
+          <div key={label} className="y2k-card p-4 text-center flex flex-col items-center justify-center gap-1">
+            <p className="text-2xl font-black text-on-surface">{value}</p>
+            <p className="text-[10px] sm:text-xs font-bold text-neutral-500 uppercase tracking-wider">{label}</p>
+          </div>
+        ))}
+      </div>
+
       {/* Search */}
-      <div className="mb-4 relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
+      <div className="relative">
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-outline h-5 w-5" />
         <input
           type="text"
           placeholder="ค้นหาบริการ..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full rounded-xl border border-neutral-200 bg-white py-2.5 pl-10 pr-4 text-sm outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-400/20 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white"
+          className="w-full h-12 pl-12 pr-4 bg-surface border-2 border-outline-variant focus:border-primary focus:ring-0 rounded-xl font-medium transition-all outline-none placeholder:text-outline-variant shadow-[2px_2px_0px_0px_#c7d2fe]"
         />
       </div>
 
-      {/* Category Tabs */}
-      <div className="mb-6 flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-        {CATEGORIES.map(({ value, label }) => (
-          <button
-            key={value}
-            onClick={() => setActiveCategory(value)}
-            className={cn(
-              "shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
-              activeCategory === value
-                ? "bg-rose-500 text-white shadow-sm"
-                : "bg-white border border-neutral-200 text-neutral-600 hover:bg-neutral-50 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400"
-            )}
-          >
-            {label}
-          </button>
-        ))}
+      {/* Category Pills */}
+      <div className="flex gap-2 overflow-x-auto hide-scrollbar py-1">
+        {CATEGORIES.map(({ value, label }) => {
+          const isActive = activeCategory === value
+          return (
+            <button
+              key={value}
+              onClick={() => setActiveCategory(value)}
+              className={cn(
+                "px-5 py-2.5 rounded-full font-bold text-xs whitespace-nowrap transition-all border-2",
+                isActive
+                  ? "bg-primary text-on-primary border-primary shadow-[2px_2px_0px_0px_#1e1b4b]"
+                  : "bg-surface border-outline-variant text-on-surface hover:bg-surface-variant shadow-[2px_2px_0px_0px_#c7d2fe]"
+              )}
+            >
+              {label}
+            </button>
+          )
+        })}
       </div>
 
-      {/* Summary strip */}
-      <div className="mb-6 grid grid-cols-3 gap-3">
-        {[
-          { label: "บริการทั้งหมด", value: MOCK_SERVICES.length, icon: Scissors, color: "text-rose-500" },
-          { label: "ราคาเฉลี่ย", value: `฿${Math.round(MOCK_SERVICES.reduce((s, sv) => s + sv.price, 0) / MOCK_SERVICES.length)}`, icon: Tag, color: "text-violet-500" },
-          { label: "ยอดนิยม", value: MOCK_SERVICES.filter((s) => s.popular).length, icon: Star, color: "text-amber-500" },
-        ].map(({ label, value, icon: Icon, color }) => (
-          <div key={label} className="rounded-2xl border border-neutral-100 bg-white p-4 text-center shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-            <Icon className={cn("mx-auto mb-1.5 h-5 w-5", color)} />
-            <p className="text-lg font-bold text-neutral-900 dark:text-white">{value}</p>
-            <p className="text-xs text-neutral-400">{label}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Service Grid */}
+      {/* Service Cards Grid */}
       {filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-center text-neutral-400">
-          <Scissors className="mb-3 h-12 w-12 opacity-30" />
-          <p className="text-sm">ไม่พบบริการที่ค้นหา</p>
+        <div className="y2k-card p-12 text-center text-neutral-400">
+          <Scissors className="mx-auto mb-3 h-12 w-12 opacity-30" />
+          <p className="font-bold text-sm">ไม่พบบริการที่ค้นหา</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((svc) => <ServiceCard key={svc.id} service={svc} />)}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filtered.map((svc) => (
+            <ServiceCard key={svc.id} service={svc} />
+          ))}
         </div>
       )}
-    </>
+    </div>
   )
 }

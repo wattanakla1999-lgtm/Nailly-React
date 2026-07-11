@@ -1,18 +1,15 @@
-import { NavLink, Outlet, useNavigate } from "react-router-dom"
+import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom"
 import {
+  LayoutDashboard,
   Calendar,
-  Users,
   Scissors,
+  Users,
   TrendingUp,
+  Settings,
   LogOut,
   Bell,
-  Settings,
-  LayoutDashboard,
-  Menu,
-  X,
+  Plus,
 } from "lucide-react"
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/useAuth"
 import { cn } from "@/lib/utils"
 
@@ -20,119 +17,17 @@ import { cn } from "@/lib/utils"
 
 const NAV_ITEMS = [
   { label: "ภาพรวม", icon: LayoutDashboard, to: "/dashboard" },
-  { label: "นัดหมาย", icon: Calendar, to: "/appointments" },
+  { label: "การนัดหมาย", icon: Calendar, to: "/appointments" },
   { label: "บริการ", icon: Scissors, to: "/services" },
   { label: "ลูกค้า", icon: Users, to: "/customers" },
   { label: "รายงาน", icon: TrendingUp, to: "/reports" },
+  { label: "ตั้งค่า", icon: Settings, to: "/settings" },
 ]
-
-// ─── Mobile Drawer ─────────────────────────────────────────────────────────────
-
-interface MobileDrawerProps {
-  isOpen: boolean
-  onClose: () => void
-}
-
-function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
-  const { user, logout } = useAuth()
-  const navigate = useNavigate()
-
-  const handleLogout = () => {
-    logout()
-    navigate("/login", { replace: true })
-  }
-
-  return (
-    <>
-      {/* Backdrop */}
-      <div
-        className={cn(
-          "fixed inset-0 z-40 bg-black/40 backdrop-blur-sm transition-opacity md:hidden",
-          isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-        )}
-        onClick={onClose}
-      />
-
-      {/* Drawer panel */}
-      <aside
-        className={cn(
-          "fixed left-0 top-0 z-50 flex h-full w-72 flex-col bg-white shadow-2xl transition-transform duration-300 ease-in-out dark:bg-neutral-900 md:hidden",
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        )}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-neutral-100 px-5 py-4 dark:border-neutral-800">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-rose-400 to-pink-500 text-xl shadow-sm">
-              💅
-            </div>
-            <div>
-              <span className="block text-sm font-black text-rose-500 leading-none">Nailly</span>
-              <span className="block text-[10px] text-neutral-400 leading-none">Nail Salon</span>
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-
-        {/* Nav */}
-        <nav className="flex-1 overflow-y-auto px-3 py-4">
-          <div className="space-y-1">
-            {NAV_ITEMS.map(({ label, icon: Icon, to }) => (
-              <NavLink
-                key={to}
-                to={to}
-                onClick={onClose}
-                className={({ isActive }) =>
-                  cn(
-                    "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
-                    isActive
-                      ? "bg-rose-50 text-rose-600 dark:bg-rose-950 dark:text-rose-400"
-                      : "text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800"
-                  )
-                }
-              >
-                <Icon className="h-5 w-5" />
-                {label}
-              </NavLink>
-            ))}
-          </div>
-        </nav>
-
-        {/* User */}
-        <div className="border-t border-neutral-100 px-4 py-4 dark:border-neutral-800">
-          <div className="flex items-center gap-3 rounded-xl bg-neutral-50 px-3 py-2.5 dark:bg-neutral-800">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-rose-400 to-pink-500 text-sm font-bold text-white">
-              {user?.name?.charAt(0) ?? "A"}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-neutral-900 dark:text-white">{user?.name}</p>
-              <p className="text-xs text-neutral-400 capitalize">{user?.role}</p>
-            </div>
-          </div>
-          <button
-            onClick={handleLogout}
-            className="mt-2 flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
-          >
-            <LogOut className="h-4 w-4" />
-            ออกจากระบบ
-          </button>
-        </div>
-      </aside>
-    </>
-  )
-}
-
-// ─── App Layout ───────────────────────────────────────────────────────────────
 
 export function AppLayout() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
-  const [drawerOpen, setDrawerOpen] = useState(false)
+  const location = useLocation()
 
   const handleLogout = () => {
     logout()
@@ -140,121 +35,111 @@ export function AppLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950">
-      {/* Mobile Drawer */}
-      <MobileDrawer isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} />
-
-      {/* ── Top Navigation ──────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-40 border-b border-neutral-200/80 bg-white/90 backdrop-blur-md dark:border-neutral-800/80 dark:bg-neutral-950/90">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-
-          {/* Left — hamburger + logo */}
-          <div className="flex items-center gap-3">
-            <button
-              aria-label="เปิดเมนู"
-              onClick={() => setDrawerOpen(true)}
-              className="flex h-9 w-9 items-center justify-center rounded-xl text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors md:hidden"
-            >
-              <Menu className="h-5 w-5" />
+    <div className="min-h-screen bg-mesh text-on-surface font-sans antialiased">
+      {/* ── Mobile Top Navigation ── */}
+      <nav className="md:hidden bg-surface/90 backdrop-blur-md fixed top-0 w-full z-50 border-b-4 border-outline shadow-sm">
+        <div className="flex justify-between items-center h-16 px-6 w-full max-w-7xl mx-auto">
+          <div className="text-2xl text-primary font-extrabold tracking-tighter">Nailly</div>
+          <div className="flex items-center gap-4">
+            <button aria-label="Notifications" className="text-primary hover:text-secondary transition-colors">
+              <Bell className="h-6 w-6" />
             </button>
-            <div className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-rose-400 to-pink-500 text-xl shadow-sm">
-                💅
-              </div>
-              <div className="hidden sm:block">
-                <span className="block text-sm font-black text-rose-500 leading-none">Nailly</span>
-                <span className="block text-[10px] text-neutral-400 leading-none">Nail Salon</span>
-              </div>
+            <div className="w-9 h-9 rounded-xl overflow-hidden border-2 border-primary cursor-pointer hover:scale-105 transition-transform flex items-center justify-center bg-gradient-to-br from-primary to-secondary text-white font-bold text-sm">
+              {user?.name?.charAt(0) ?? "A"}
             </div>
           </div>
-
-          {/* Center — desktop nav */}
-          <nav className="hidden md:flex items-center gap-1">
-            {NAV_ITEMS.map(({ label, to }) => (
+        </div>
+        {/* Scrollable Submenu */}
+        <div className="flex overflow-x-auto px-6 gap-6 pb-2 hide-scrollbar scroll-smooth">
+          {NAV_ITEMS.map(({ label, to }) => {
+            const isActive = location.pathname === to
+            return (
               <NavLink
                 key={to}
                 to={to}
-                className={({ isActive }) =>
-                  cn(
-                    "rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                    isActive
-                      ? "bg-rose-50 text-rose-600 dark:bg-rose-950 dark:text-rose-400"
-                      : "text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800"
-                  )
-                }
+                className={cn(
+                  "pb-1 whitespace-nowrap text-sm uppercase font-semibold transition-all border-b-4",
+                  isActive
+                    ? "text-primary font-bold border-secondary"
+                    : "text-on-surface-variant/70 border-transparent hover:text-primary"
+                )}
               >
                 {label}
               </NavLink>
-            ))}
-          </nav>
-
-          {/* Right — actions */}
-          <div className="flex items-center gap-1 sm:gap-2">
-            <button
-              aria-label="การแจ้งเตือน"
-              className="relative flex h-9 w-9 items-center justify-center rounded-xl text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-            >
-              <Bell className="h-5 w-5" />
-              <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-rose-500" />
-            </button>
-            <button
-              aria-label="ตั้งค่า"
-              className="hidden sm:flex h-9 w-9 items-center justify-center rounded-xl text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-            >
-              <Settings className="h-5 w-5" />
-            </button>
-            <div className="ml-1 flex items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-2 py-1.5 sm:px-3 dark:border-neutral-700 dark:bg-neutral-800">
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-rose-400 to-pink-500 text-xs font-bold text-white">
-                {user?.name?.charAt(0) ?? "A"}
-              </div>
-              <span className="hidden lg:block text-sm font-medium text-neutral-700 dark:text-neutral-300 max-w-[120px] truncate">
-                {user?.name}
-              </span>
-            </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleLogout}
-              className="text-neutral-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 hidden md:flex"
-              aria-label="ออกจากระบบ"
-            >
-              <LogOut className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      {/* ── Page Content ─────────────────────────────────────────────────── */}
-      <main className="mx-auto max-w-7xl px-4 py-6 sm:py-8 sm:px-6 lg:px-8 pb-24 md:pb-8">
-        <Outlet />
-      </main>
-
-      {/* ── Bottom Navigation (mobile only) ─────────────────────────────── */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-neutral-200/80 bg-white/90 backdrop-blur-md dark:border-neutral-800/80 dark:bg-neutral-950/90 md:hidden">
-        <div className="flex items-center justify-around px-2 py-2">
-          {NAV_ITEMS.map(({ label, icon: Icon, to }) => (
-            <NavLink
-              key={to}
-              to={to}
-              className={({ isActive }) =>
-                cn(
-                  "flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl transition-colors min-w-0",
-                  isActive
-                    ? "text-rose-500"
-                    : "text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300"
-                )
-              }
-            >
-              {({ isActive }) => (
-                <>
-                  <Icon className={cn("h-5 w-5 transition-transform", isActive && "scale-110")} />
-                  <span className="text-[10px] font-medium truncate">{label}</span>
-                </>
-              )}
-            </NavLink>
-          ))}
+            )
+          })}
         </div>
       </nav>
+
+      {/* ── Desktop Side Navigation ── */}
+      <aside className="hidden md:flex bg-surface h-screen w-64 fixed left-0 top-0 border-r-4 border-outline flex-col p-4 gap-4 z-40">
+        {/* Header Branding */}
+        <div className="flex items-center gap-3 mb-6 mt-4 px-2">
+          <div className="w-12 h-12 rounded-xl overflow-hidden border-2 border-primary shadow-[2px_2px_0px_#FB923C] flex items-center justify-center bg-gradient-to-br from-[#818CF8] to-[#FB923C] text-white text-2xl font-black">
+            💅
+          </div>
+          <div>
+            <h1 className="text-2xl text-primary font-black tracking-tighter leading-none">Nailly</h1>
+            <p className="text-[10px] text-secondary font-bold uppercase tracking-wider mt-1">Management</p>
+          </div>
+        </div>
+
+        {/* Action Button (Add Appt shortcut) */}
+        <div className="px-1 mb-2">
+          <button
+            onClick={() => navigate("/appointments")}
+            className="w-full bg-gradient-to-r from-primary to-secondary text-white rounded-xl py-3 px-4 font-bold uppercase tracking-wider border-2 border-on-surface shadow-[4px_4px_0px_0px_#1e1b4b] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#1e1b4b] active:scale-95 transition-all flex items-center justify-center gap-2 text-xs"
+          >
+            <Plus className="h-4 w-4 stroke-[3px]" />
+            จองคิวใหม่
+          </button>
+        </div>
+
+        {/* Main Nav Links */}
+        <nav className="flex flex-col gap-2.5 flex-grow">
+          {NAV_ITEMS.map(({ label, icon: Icon, to }) => {
+            const isActive = location.pathname === to
+            return (
+              <NavLink
+                key={to}
+                to={to}
+                className={cn(
+                  "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200",
+                  isActive
+                    ? "bg-primary-container text-on-primary-container border-2 border-primary shadow-[4px_4px_0px_0px_#FB923C] translate-x-[-2px] translate-y-[-2px] font-bold"
+                    : "text-on-surface-variant/80 hover:bg-surface-variant/40 hover:text-primary hover:translate-x-1 font-semibold"
+                )}
+              >
+                <Icon className={cn("h-5 w-5", isActive ? "stroke-[2.5px]" : "stroke-[2px]")} />
+                <span className="text-xs uppercase tracking-wider">{label}</span>
+              </NavLink>
+            )
+          })}
+        </nav>
+
+        {/* Footer Nav Links */}
+        <div className="mt-auto flex flex-col gap-1.5 border-t-2 border-outline-variant/60 pt-4">
+          <button
+            onClick={() => navigate("/settings")}
+            className="text-on-surface-variant/80 flex items-center gap-3 px-4 py-2 hover:bg-surface-variant/40 hover:text-primary rounded-xl transition-all font-semibold hover:translate-x-1 text-left w-full"
+          >
+            <Settings className="h-4 w-4" />
+            <span className="text-xs uppercase tracking-wider">ตั้งค่า</span>
+          </button>
+          <button
+            onClick={handleLogout}
+            className="text-on-surface-variant/80 flex items-center gap-3 px-4 py-2 hover:bg-red-50 hover:text-red-500 rounded-xl transition-all font-semibold hover:translate-x-1 text-left w-full"
+          >
+            <LogOut className="h-4 w-4" />
+            <span className="text-xs uppercase tracking-wider">ออกจากระบบ</span>
+          </button>
+        </div>
+      </aside>
+
+      {/* ── Page Container ── */}
+      <main className="pt-[110px] pb-16 md:pt-8 md:ml-64 px-4 md:px-8 max-w-7xl mx-auto min-h-screen">
+        <Outlet />
+      </main>
     </div>
   )
 }

@@ -1,7 +1,7 @@
-import { useState } from "react"
-import { Calendar, Clock, Plus, Search, Filter, ChevronDown } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import React, { useState, useEffect } from "react"
+import { Calendar, Plus, Search, Edit, Check, MoreVertical, Sparkles, User, Phone, DollarSign } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { Y2KModal } from "@/components/Y2KModal"
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -10,30 +10,66 @@ type AppStatus = "confirmed" | "pending" | "done" | "cancelled"
 interface Appointment {
   id: string
   customerName: string
+  name?: string // Backwards compatibility for booking flow
+  phone: string
   service: string
   staff: string
+  staffImg?: string
   date: string
   time: string
-  duration: number // minutes
+  duration: number
   price: number
   status: AppStatus
-  phone: string
+  iconType?: "dry_cleaning" | "brush" | "spa"
+  cancelReason?: string
 }
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
 
 const MOCK_APPOINTMENTS: Appointment[] = [
-  { id: "1", customerName: "สมใจ รักสวย", service: "Gel Manicure + Nail Art", staff: "น้องนุ่น", date: "วันนี้", time: "10:00", duration: 90, price: 650, status: "confirmed", phone: "081-234-5678" },
-  { id: "2", customerName: "นิดา มีสุข", service: "Pedicure Classic", staff: "น้องแนน", date: "วันนี้", time: "11:30", duration: 60, price: 350, status: "pending", phone: "089-345-6789" },
-  { id: "3", customerName: "วรรณา สวยงาม", service: "French Manicure", staff: "น้องนุ่น", date: "วันนี้", time: "13:00", duration: 75, price: 450, status: "confirmed", phone: "062-456-7890" },
-  { id: "4", customerName: "พิมพ์ใจ รุ่งเรือง", service: "Nail Extension", staff: "น้องแนน", date: "วันนี้", time: "14:30", duration: 120, price: 900, status: "done", phone: "095-567-8901" },
-  { id: "5", customerName: "กนกวรรณ ดาวแดง", service: "Gel Pedicure", staff: "น้องนุ่น", date: "วันนี้", time: "15:30", duration: 75, price: 480, status: "pending", phone: "083-678-9012" },
-  { id: "6", customerName: "มาลี สดใส", service: "Nail Art Premium", staff: "น้องแนน", date: "พรุ่งนี้", time: "10:00", duration: 120, price: 800, status: "confirmed", phone: "091-789-0123" },
-  { id: "7", customerName: "ปิยะมาศ ดีงาม", service: "Manicure Classic", staff: "น้องนุ่น", date: "พรุ่งนี้", time: "11:30", duration: 45, price: 250, status: "pending", phone: "086-890-1234" },
-  { id: "8", customerName: "สุภาพร ใจดี", service: "Gel Manicure", staff: "น้องแนน", date: "พรุ่งนี้", time: "14:00", duration: 75, price: 550, status: "cancelled", phone: "094-901-2345" },
+  {
+    id: "1",
+    customerName: "คุณ อลิสา",
+    service: "Classic Gel Manicure",
+    staff: "พี่แนน",
+    staffImg: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=100",
+    date: "วันนี้",
+    time: "10:00",
+    duration: 60,
+    price: 550,
+    status: "confirmed",
+    phone: "081-234-5678",
+    iconType: "dry_cleaning",
+  },
+  {
+    id: "2",
+    customerName: "คุณ เมย์",
+    service: "Spa Pedicure & Nail Art",
+    staff: "น้องมายด์",
+    staffImg: "https://images.unsplash.com/photo-1519014816548-bf5fe059798b?w=100",
+    date: "วันนี้",
+    time: "13:30",
+    duration: 90,
+    price: 800,
+    status: "pending",
+    phone: "089-345-6789",
+    iconType: "brush",
+  },
+  {
+    id: "3",
+    customerName: "คุณ เจน",
+    service: "Hand Spa & Mask",
+    staff: "พี่แนน",
+    staffImg: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=100",
+    date: "พรุ่งนี้",
+    time: "11:00",
+    duration: 60,
+    price: 350,
+    status: "confirmed",
+    phone: "062-456-7890",
+    iconType: "spa",
+  },
 ]
-
-// ─── Constants ────────────────────────────────────────────────────────────────
 
 const FILTER_TABS: { label: string; value: AppStatus | "all" }[] = [
   { label: "ทั้งหมด", value: "all" },
@@ -44,213 +80,753 @@ const FILTER_TABS: { label: string; value: AppStatus | "all" }[] = [
 ]
 
 const STATUS_CONFIG: Record<AppStatus, { label: string; styles: string }> = {
-  confirmed: { label: "ยืนยันแล้ว", styles: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400" },
-  pending:   { label: "รอยืนยัน",  styles: "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400" },
-  done:      { label: "เสร็จสิ้น", styles: "bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400" },
-  cancelled: { label: "ยกเลิก",    styles: "bg-red-100 text-red-600 dark:bg-red-950 dark:text-red-400" },
+  confirmed: { label: "ยืนยันแล้ว", styles: "bg-tertiary-container text-tertiary border-tertiary" },
+  pending:   { label: "รอยืนยัน",  styles: "bg-secondary-container text-on-secondary-container border-secondary" },
+  done:      { label: "เสร็จสิ้น", styles: "bg-neutral-100 text-neutral-500 border-neutral-300" },
+  cancelled: { label: "ยกเลิก",    styles: "bg-red-100 text-red-600 border-red-300" },
 }
 
-// ─── Add Appointment Modal (Simple) ──────────────────────────────────────────
+// ─── Add Appointment Modal ───────────────────────────────────────────────────
 
 interface AddModalProps {
+  isOpen: boolean
   onClose: () => void
+  onSave: (apt: Appointment) => void
 }
 
-function AddAppointmentModal({ onClose }: AddModalProps) {
+function AddAppointmentModal({ isOpen, onClose, onSave }: AddModalProps) {
+  const [customerName, setCustomerName] = useState("")
+  const [phone, setPhone] = useState("")
+  const [service, setService] = useState("เจลเมนิเกียร์")
+  const [staff, setStaff] = useState("พี่แนน")
+  const [date, setDate] = useState(new Date().toISOString().split("T")[0])
+  const [time, setTime] = useState("10:00")
+  const [price, setPrice] = useState(550)
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!customerName || !phone) {
+      alert("กรุณากรอกข้อมูลสำคัญให้ครบถ้วน")
+      return
+    }
+
+    const todayStr = new Date().toISOString().split("T")[0]
+    const tomorrow = new Date()
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    const tomorrowStr = tomorrow.toISOString().split("T")[0]
+
+    let displayDate = date
+    if (date === todayStr) displayDate = "วันนี้"
+    else if (date === tomorrowStr) displayDate = "พรุ่งนี้"
+
+    onSave({
+      id: String(Date.now()),
+      customerName,
+      name: customerName,
+      phone,
+      service,
+      staff,
+      staffImg: staff === "พี่แนน" ? "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=100" : "https://images.unsplash.com/photo-1519014816548-bf5fe059798b?w=100",
+      date: displayDate,
+      time,
+      duration: 60,
+      price,
+      status: "pending",
+    })
+  }
+
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-      <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl dark:bg-neutral-900 animate-in fade-in slide-in-from-bottom-4 duration-200">
-        <div className="flex items-center justify-between mb-5">
-          <h3 className="text-lg font-bold text-neutral-900 dark:text-white">เพิ่มนัดหมายใหม่</h3>
-          <button onClick={onClose} className="text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 text-xl leading-none">×</button>
+    <Y2KModal isOpen={isOpen} onClose={onClose} title="เพิ่มการนัดหมายใหม่">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-1">
+          <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">ชื่อลูกค้า *</label>
+          <div className="relative">
+            <User className="absolute left-3 top-1/2 -translate-y-1/2 text-outline h-4 w-4" />
+            <input
+              type="text"
+              required
+              value={customerName}
+              onChange={(e) => setCustomerName(e.target.value)}
+              placeholder="ระบุชื่อลูกค้า"
+              className="w-full h-10 pl-9 pr-3 bg-surface border-2 border-outline-variant focus:border-primary focus:ring-0 rounded-xl font-bold text-xs outline-none"
+            />
+          </div>
         </div>
 
-        <div className="space-y-4">
-          {[
-            { id: "apt-customer", label: "ชื่อลูกค้า", placeholder: "ค้นหาหรือเพิ่มลูกค้า" },
-            { id: "apt-service", label: "บริการ", placeholder: "เลือกบริการ" },
-            { id: "apt-staff", label: "พนักงาน", placeholder: "เลือกพนักงาน" },
-          ].map(({ id, label, placeholder }) => (
-            <div key={id} className="space-y-1.5">
-              <label htmlFor={id} className="text-sm font-medium text-neutral-700 dark:text-neutral-300">{label}</label>
+        <div className="space-y-1">
+          <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">เบอร์โทรศัพท์ *</label>
+          <div className="relative">
+            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-outline h-4 w-4" />
+            <input
+              type="text"
+              required
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="เช่น 0812345678"
+              className="w-full h-10 pl-9 pr-3 bg-surface border-2 border-outline-variant focus:border-primary focus:ring-0 rounded-xl font-bold text-xs outline-none"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-1">
+          <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">บริการ</label>
+          <select
+            value={service}
+            onChange={(e) => setService(e.target.value)}
+            className="w-full h-10 px-3 bg-surface border-2 border-outline-variant focus:border-primary focus:ring-0 rounded-xl font-bold text-xs outline-none"
+          >
+            <option value="เมนิเกียร์คลาสสิก">เมนิเกียร์คลาสสิก (฿250)</option>
+            <option value="เจลเมนิเกียร์">เจลเมนิเกียร์ (฿550)</option>
+            <option value="เฟรนช์เมนิเกียร์">เฟรนช์เมนิเกียร์ (฿450)</option>
+            <option value="เพนท์ลวดลาย">เพนท์ลวดลาย (฿150)</option>
+            <option value="ต่อเล็บ PVC/เจล">ต่อเล็บ PVC/เจล (฿900)</option>
+          </select>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">วันที่สะดวก</label>
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="w-full h-10 px-3 bg-surface border-2 border-outline-variant focus:border-primary focus:ring-0 rounded-xl font-bold text-xs outline-none"
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">เวลา</label>
+            <input
+              type="time"
+              value={time}
+              onChange={(e) => setTime(e.target.value)}
+              className="w-full h-10 px-3 bg-surface border-2 border-outline-variant focus:border-primary focus:ring-0 rounded-xl font-bold text-xs outline-none"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">ช่างผู้ให้บริการ</label>
+            <select
+              value={staff}
+              onChange={(e) => setStaff(e.target.value)}
+              className="w-full h-10 px-3 bg-surface border-2 border-outline-variant focus:border-primary focus:ring-0 rounded-xl font-bold text-xs outline-none"
+            >
+              <option value="พี่แนน">พี่แนน</option>
+              <option value="น้องมายด์">น้องมายด์</option>
+            </select>
+          </div>
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">ราคาพิเศษ (บาท)</label>
+            <div className="relative">
+              <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 text-outline h-4 w-4" />
               <input
-                id={id}
-                type="text"
-                placeholder={placeholder}
-                className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-400/20 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
+                type="number"
+                value={price}
+                onChange={(e) => setPrice(Number(e.target.value))}
+                className="w-full h-10 pl-9 pr-3 bg-surface border-2 border-outline-variant focus:border-primary focus:ring-0 rounded-xl font-bold text-xs outline-none"
               />
-            </div>
-          ))}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <label htmlFor="apt-date" className="text-sm font-medium text-neutral-700 dark:text-neutral-300">วันที่</label>
-              <input id="apt-date" type="date" className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-400/20 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white" />
-            </div>
-            <div className="space-y-1.5">
-              <label htmlFor="apt-time" className="text-sm font-medium text-neutral-700 dark:text-neutral-300">เวลา</label>
-              <input id="apt-time" type="time" className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-400/20 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white" />
             </div>
           </div>
         </div>
 
-        <div className="mt-6 flex gap-3">
-          <Button variant="outline" className="flex-1" onClick={onClose}>ยกเลิก</Button>
-          <Button onClick={onClose} className="flex-1 bg-gradient-to-r from-rose-500 to-pink-500 text-white hover:from-rose-600 hover:to-pink-600">
-            บันทึก
-          </Button>
+        <div className="pt-4 flex gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 h-10 rounded-xl border-2 border-on-surface bg-white text-neutral-700 font-bold hover:bg-neutral-50 active:scale-95 transition-all text-xs"
+          >
+            ยกเลิก
+          </button>
+          <button
+            type="submit"
+            className="flex-1 h-10 bg-gradient-to-r from-primary to-secondary text-white rounded-xl font-bold border-2 border-on-surface shadow-[2px_2px_0px_0px_#1e1b4b] hover:translate-x-[1px] hover:translate-y-[1px] active:scale-95 transition-all text-xs"
+          >
+            บันทึกการนัดหมาย
+          </button>
         </div>
-      </div>
-    </div>
+      </form>
+    </Y2KModal>
+  )
+}
+
+// ─── Edit Appointment Modal ──────────────────────────────────────────────────
+
+interface EditModalProps {
+  isOpen: boolean
+  onClose: () => void
+  onSave: (apt: Appointment) => void
+  appointment: Appointment | null
+}
+
+function EditAppointmentModal({ isOpen, onClose, onSave, appointment }: EditModalProps) {
+  const [customerName, setCustomerName] = useState("")
+  const [phone, setPhone] = useState("")
+  const [service, setService] = useState("")
+  const [staff, setStaff] = useState("")
+  const [date, setDate] = useState("")
+  const [time, setTime] = useState("")
+  const [price, setPrice] = useState(0)
+
+  useEffect(() => {
+    if (appointment) {
+      setCustomerName(appointment.customerName || appointment.name || "")
+      setPhone(appointment.phone)
+      setService(appointment.service)
+      setStaff(appointment.staff)
+      
+      let formattedDate = appointment.date
+      const todayStr = new Date().toISOString().split("T")[0]
+      const tomorrow = new Date()
+      tomorrow.setDate(tomorrow.getDate() + 1)
+      const tomorrowStr = tomorrow.toISOString().split("T")[0]
+
+      if (appointment.date === "วันนี้") formattedDate = todayStr
+      else if (appointment.date === "พรุ่งนี้") formattedDate = tomorrowStr
+
+      setDate(formattedDate)
+      setTime(appointment.time)
+      setPrice(appointment.price)
+    }
+  }, [appointment])
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!appointment) return
+
+    const todayStr = new Date().toISOString().split("T")[0]
+    const tomorrow = new Date()
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    const tomorrowStr = tomorrow.toISOString().split("T")[0]
+
+    let displayDate = date
+    if (date === todayStr) displayDate = "วันนี้"
+    else if (date === tomorrowStr) displayDate = "พรุ่งนี้"
+
+    onSave({
+      ...appointment,
+      customerName,
+      name: customerName,
+      phone,
+      service,
+      staff,
+      date: displayDate,
+      time,
+      price,
+    })
+  }
+
+  return (
+    <Y2KModal isOpen={isOpen} onClose={onClose} title="แก้ไขการนัดหมาย">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-1">
+          <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">ชื่อลูกค้า *</label>
+          <div className="relative">
+            <User className="absolute left-3 top-1/2 -translate-y-1/2 text-outline h-4 w-4" />
+            <input
+              type="text"
+              required
+              value={customerName}
+              onChange={(e) => setCustomerName(e.target.value)}
+              className="w-full h-10 pl-9 pr-3 bg-surface border-2 border-outline-variant focus:border-primary focus:ring-0 rounded-xl font-bold text-xs outline-none"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-1">
+          <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">เบอร์โทรศัพท์ *</label>
+          <div className="relative">
+            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-outline h-4 w-4" />
+            <input
+              type="text"
+              required
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="w-full h-10 pl-9 pr-3 bg-surface border-2 border-outline-variant focus:border-primary focus:ring-0 rounded-xl font-bold text-xs outline-none"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-1">
+          <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">บริการ</label>
+          <select
+            value={service}
+            onChange={(e) => setService(e.target.value)}
+            className="w-full h-10 px-3 bg-surface border-2 border-outline-variant focus:border-primary focus:ring-0 rounded-xl font-bold text-xs outline-none"
+          >
+            <option value="เมนิเกียร์คลาสสิก">เมนิเกียร์คลาสสิก (฿250)</option>
+            <option value="เจลเมนิเกียร์">เจลเมนิเกียร์ (฿550)</option>
+            <option value="เฟรนช์เมนิเกียร์">เฟรนช์เมนิเกียร์ (฿450)</option>
+            <option value="เพนท์ลวดลาย">เพนท์ลวดลาย (฿150)</option>
+            <option value="ต่อเล็บ PVC/เจล">ต่อเล็บ PVC/เจล (฿900)</option>
+          </select>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">วันที่นัด</label>
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="w-full h-10 px-3 bg-surface border-2 border-outline-variant focus:border-primary focus:ring-0 rounded-xl font-bold text-xs outline-none"
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">เวลา</label>
+            <input
+              type="time"
+              value={time}
+              onChange={(e) => setTime(e.target.value)}
+              className="w-full h-10 px-3 bg-surface border-2 border-outline-variant focus:border-primary focus:ring-0 rounded-xl font-bold text-xs outline-none"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">ช่างผู้ให้บริการ</label>
+            <select
+              value={staff}
+              onChange={(e) => setStaff(e.target.value)}
+              className="w-full h-10 px-3 bg-surface border-2 border-outline-variant focus:border-primary focus:ring-0 rounded-xl font-bold text-xs outline-none"
+            >
+              <option value="พี่แนน">พี่แนน</option>
+              <option value="น้องมายด์">น้องมายด์</option>
+            </select>
+          </div>
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">ราคาพิเศษ (บาท)</label>
+            <div className="relative">
+              <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 text-outline h-4 w-4" />
+              <input
+                type="number"
+                value={price}
+                onChange={(e) => setPrice(Number(e.target.value))}
+                className="w-full h-10 pl-9 pr-3 bg-surface border-2 border-outline-variant focus:border-primary focus:ring-0 rounded-xl font-bold text-xs outline-none"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="pt-4 flex gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 h-10 rounded-xl border-2 border-on-surface bg-white text-neutral-700 font-bold hover:bg-neutral-50 active:scale-95 transition-all text-xs"
+          >
+            ยกเลิก
+          </button>
+          <button
+            type="submit"
+            className="flex-1 h-10 bg-gradient-to-r from-primary to-secondary text-white rounded-xl font-bold border-2 border-on-surface shadow-[2px_2px_0px_0px_#1e1b4b] hover:translate-x-[1px] hover:translate-y-[1px] active:scale-95 transition-all text-xs"
+          >
+            บันทึกการเปลี่ยนแปลง
+          </button>
+        </div>
+      </form>
+    </Y2KModal>
   )
 }
 
 // ─── Appointments Page ────────────────────────────────────────────────────────
 
 export function AppointmentsPage() {
+  const [appointments, setAppointments] = useState<Appointment[]>([])
   const [activeFilter, setActiveFilter] = useState<AppStatus | "all">("all")
   const [searchQuery, setSearchQuery] = useState("")
-  const [showModal, setShowModal] = useState(false)
 
-  const filtered = MOCK_APPOINTMENTS.filter((apt) => {
+  // Modal display states
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [showCancelModal, setShowCancelModal] = useState(false)
+  const [showOptionsMenu, setShowOptionsMenu] = useState(false)
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
+
+  // Working appointment slots
+  const [selectedApt, setSelectedApt] = useState<Appointment | null>(null)
+  const [cancelReason, setCancelReason] = useState("")
+  const [successMessage, setSuccessMessage] = useState("")
+
+  // Load from localStorage or merge with mock on mount
+  useEffect(() => {
+    const stored = localStorage.getItem("nailly_custom_appointments")
+    if (stored) {
+      try {
+        setAppointments(JSON.parse(stored))
+      } catch (e) {
+        console.error(e)
+      }
+    } else {
+      localStorage.setItem("nailly_custom_appointments", JSON.stringify(MOCK_APPOINTMENTS))
+      setAppointments(MOCK_APPOINTMENTS)
+    }
+  }, [])
+
+  const saveAppointmentsList = (updated: Appointment[]) => {
+    setAppointments(updated)
+    localStorage.setItem("nailly_custom_appointments", JSON.stringify(updated))
+  }
+
+  // Action: Add appointment
+  const handleAddAppointment = (newApt: Appointment) => {
+    const updated = [newApt, ...appointments]
+    saveAppointmentsList(updated)
+    setShowAddModal(false)
+    setSuccessMessage("บันทึกการนัดหมายใหม่เรียบร้อยแล้ว!")
+    setShowSuccessModal(true)
+  }
+
+  // Action: Edit appointment
+  const handleEditAppointment = (editedApt: Appointment) => {
+    const updated = appointments.map((apt) => (apt.id === editedApt.id ? editedApt : apt))
+    saveAppointmentsList(updated)
+    setShowEditModal(false)
+    setSuccessMessage("แก้ไขรายละเอียดการนัดหมายเรียบร้อยแล้ว!")
+    setShowSuccessModal(true)
+  }
+
+  // Action: Update status directly (e.g. confirm/done)
+  const handleStatusUpdate = (id: string, nextStatus: AppStatus) => {
+    const updated = appointments.map((apt) => 
+      apt.id === id ? { ...apt, status: nextStatus } : apt
+    )
+    saveAppointmentsList(updated)
+    
+    let msg = "อัปเดตสถานะนัดหมายเรียบร้อยแล้ว!"
+    if (nextStatus === "confirmed") msg = "ยืนยันการนัดหมายเรียบร้อยแล้ว! 🟢"
+    if (nextStatus === "done") msg = "เสร็จสิ้นบริการทำเล็บเรียบร้อยแล้ว! 🎉"
+
+    setSuccessMessage(msg)
+    setShowSuccessModal(true)
+  }
+
+  // Action: Cancel appointment with reason
+  const handleCancelSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!selectedApt) return
+
+    const updated = appointments.map((apt) => 
+      apt.id === selectedApt.id 
+        ? { ...apt, status: "cancelled" as AppStatus, cancelReason } 
+        : apt
+    )
+    saveAppointmentsList(updated)
+    setShowCancelModal(false)
+    setCancelReason("")
+    setSuccessMessage("ยกเลิกการนัดหมาย และบันทึกสาเหตุเรียบร้อยแล้ว! 🔴")
+    setShowSuccessModal(true)
+  }
+
+  // Filter logic
+  const filtered = appointments.filter((apt) => {
     const matchStatus = activeFilter === "all" || apt.status === activeFilter
+    
+    const clientName = apt.customerName || apt.name || ""
     const matchSearch =
-      apt.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       apt.service.toLowerCase().includes(searchQuery.toLowerCase())
     return matchStatus && matchSearch
   })
 
-  const groupedByDate = filtered.reduce<Record<string, Appointment[]>>((acc, apt) => {
+  // Group by date
+  const grouped = filtered.reduce<Record<string, Appointment[]>>((acc, apt) => {
     acc[apt.date] = [...(acc[apt.date] ?? []), apt]
     return acc
   }, {})
 
   return (
-    <>
-      {/* Page Header */}
-      <div className="mb-6 flex items-center justify-between gap-3">
+    <div className="space-y-8">
+      {/* Header Section */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-neutral-900 dark:text-white">นัดหมาย</h1>
-          <p className="mt-0.5 text-sm text-neutral-500 dark:text-neutral-400">
-            {filtered.length} รายการ
-          </p>
+          <h1 className="text-3xl font-black text-on-surface flex items-baseline gap-3 tracking-tight">
+            การนัดหมาย
+            <span className="text-xl text-outline font-normal">({filtered.length})</span>
+          </h1>
         </div>
-        <Button
-          onClick={() => setShowModal(true)}
-          className="shrink-0 gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-md hover:from-rose-600 hover:to-pink-600 text-sm"
+        <button
+          onClick={() => setShowAddModal(true)}
+          className="bg-gradient-to-r from-primary to-secondary text-white px-6 py-3 rounded-xl font-bold border-2 border-on-surface shadow-[4px_4px_0px_0px_#1e1b4b] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#1e1b4b] active:scale-95 transition-all flex items-center gap-2 justify-center w-full sm:w-auto text-sm"
         >
-          <Plus className="h-4 w-4" />
-          <span className="hidden sm:inline">เพิ่มนัดหมาย</span>
-          <span className="sm:hidden">เพิ่ม</span>
-        </Button>
-      </div>
-
-      {/* Search + Filter Bar */}
-      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
-          <input
-            type="text"
-            placeholder="ค้นหาชื่อลูกค้าหรือบริการ..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-xl border border-neutral-200 bg-white py-2.5 pl-10 pr-4 text-sm outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-400/20 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white"
-          />
-        </div>
-        <button className="flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm text-neutral-600 hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400">
-          <Filter className="h-4 w-4" />
-          กรองเพิ่มเติม
-          <ChevronDown className="h-3 w-3" />
+          <Plus className="h-4 w-4 stroke-[3px]" />
+          เพิ่มนัดหมาย
         </button>
       </div>
 
-      {/* Status Filter Tabs */}
-      <div className="mb-6 flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-        {FILTER_TABS.map(({ label, value }) => (
-          <button
-            key={value}
-            onClick={() => setActiveFilter(value)}
-            className={cn(
-              "shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
-              activeFilter === value
-                ? "bg-rose-500 text-white shadow-sm"
-                : "bg-white border border-neutral-200 text-neutral-600 hover:bg-neutral-50 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400"
-            )}
-          >
-            {label}
-          </button>
-        ))}
+      {/* Search & Filters */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-outline h-5 w-5" />
+          <input
+            type="text"
+            placeholder="ค้นหาชื่อลูกค้า, บริการ..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full h-12 pl-12 pr-4 bg-surface border-2 border-outline-variant focus:border-primary focus:ring-0 rounded-xl font-bold transition-all outline-none placeholder:text-outline-variant shadow-[2px_2px_0px_0px_#c7d2fe]"
+          />
+        </div>
       </div>
 
-      {/* Appointment List */}
-      {Object.keys(groupedByDate).length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-center text-neutral-400">
-          <Calendar className="mb-3 h-12 w-12 opacity-30" />
-          <p className="text-sm">ไม่พบนัดหมายที่ค้นหา</p>
+      {/* Filter Pills */}
+      <div className="flex gap-2 overflow-x-auto hide-scrollbar py-1">
+        {FILTER_TABS.map(({ label, value }) => {
+          const isActive = activeFilter === value
+          return (
+            <button
+              key={value}
+              onClick={() => setActiveFilter(value)}
+              className={cn(
+                "px-5 py-2.5 rounded-full font-bold text-xs whitespace-nowrap transition-all border-2",
+                isActive
+                  ? "bg-gradient-to-r from-primary to-secondary text-white border-on-surface shadow-[2px_2px_0px_0px_#1e1b4b]"
+                  : "bg-white border-outline-variant text-on-surface hover:bg-surface-variant shadow-[2px_2px_0px_0px_#c7d2fe]"
+              )}
+            >
+              {label}
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Grid rendering by date */}
+      {Object.keys(grouped).length === 0 ? (
+        <div className="y2k-card p-12 text-center text-neutral-400">
+          <Calendar className="mx-auto mb-3 h-12 w-12 opacity-30" />
+          <p className="font-bold text-sm">ไม่พบนัดหมายในขณะนี้</p>
         </div>
       ) : (
-        <div className="space-y-6">
-          {Object.entries(groupedByDate).map(([date, apts]) => (
-            <div key={date}>
-              <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-neutral-500 dark:text-neutral-400">
-                <Calendar className="h-4 w-4" />
+        <div className="space-y-8">
+          {Object.entries(grouped).map(([date, apts]) => (
+            <section key={date} className="space-y-4">
+              <h3 className="text-xl font-black text-on-surface flex items-center gap-3 tracking-tight">
                 {date}
-                <span className="ml-auto rounded-full bg-neutral-100 px-2 py-0.5 text-xs text-neutral-500 dark:bg-neutral-800">
-                  {apts.length} นัด
-                </span>
-              </h2>
+                <span className="h-0.5 flex-grow bg-outline-variant" />
+              </h3>
 
-              <div className="space-y-3">
+              <div className="grid grid-cols-1 gap-4">
                 {apts.map((apt) => (
                   <div
                     key={apt.id}
-                    className="rounded-2xl border border-neutral-100 bg-white p-4 shadow-sm transition-all hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900"
+                    className="glass-card rounded-[24px] p-4 flex flex-col sm:flex-row items-stretch gap-4 relative overflow-hidden"
                   >
-                    <div className="flex items-start gap-3">
-                      {/* Time block */}
-                      <div className="flex w-14 shrink-0 flex-col items-center rounded-xl bg-rose-50 py-2 text-center dark:bg-rose-950/30">
-                        <Clock className="mb-1 h-3 w-3 text-rose-400" />
-                        <span className="text-sm font-bold text-rose-600 dark:text-rose-400">{apt.time}</span>
-                        <span className="text-[10px] text-rose-400">{apt.duration}น.</span>
+                    {/* Left Time Block */}
+                    <div
+                      className={cn(
+                        "w-full sm:w-28 rounded-[20px] flex flex-row sm:flex-col items-center justify-center p-4 sm:p-0 gap-2 border-2",
+                        apt.status === "confirmed"
+                          ? "bg-primary-container border-primary/20 text-primary"
+                          : "bg-surface-variant border-outline-variant text-on-surface"
+                      )}
+                    >
+                      <span className="text-xl font-bold leading-none">{apt.time}</span>
+                      <span className="text-xs font-semibold opacity-75">{apt.duration} นาที</span>
+                    </div>
+
+                    {/* Middle Details */}
+                    <div className="flex-grow flex flex-col justify-center text-xs space-y-1.5 font-bold text-neutral-600">
+                      <div className="flex items-center gap-3 mb-1">
+                        <h4 className="text-lg font-black text-on-surface">{apt.customerName || apt.name}</h4>
+                        <span className={cn("px-3 py-0.5 rounded-full font-bold text-[10px] tracking-wide border-2", STATUS_CONFIG[apt.status].styles)}>
+                          {STATUS_CONFIG[apt.status].label}
+                        </span>
+                      </div>
+                      
+                      <p className="text-on-surface-variant font-black text-sm flex items-center gap-2 mb-1">
+                        <Sparkles className="h-4 w-4 text-primary shrink-0" />
+                        {apt.service}
+                      </p>
+
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                        {apt.phone && <p>📞 โทร: <span className="text-neutral-800 font-bold">{apt.phone}</span></p>}
+                        <p>👤 ช่าง: <span className="text-neutral-800 font-bold">{apt.staff}</span></p>
+                        <p>💰 ราคา: <span className="text-primary font-black">฿{apt.price}</span></p>
                       </div>
 
-                      {/* Details */}
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="font-semibold text-neutral-900 dark:text-white">{apt.customerName}</span>
-                          <span className={cn("rounded-full px-2 py-0.5 text-xs font-medium", STATUS_CONFIG[apt.status].styles)}>
-                            {STATUS_CONFIG[apt.status].label}
-                          </span>
+                      {apt.status === "cancelled" && apt.cancelReason && (
+                        <div className="mt-2 p-2 bg-red-50 text-red-700 border-2 border-red-200 rounded-lg text-[10px] w-fit">
+                          ❌ สาเหตุที่ยกเลิก: {apt.cancelReason}
                         </div>
-                        <p className="mt-0.5 text-sm text-neutral-600 dark:text-neutral-400">{apt.service}</p>
-                        <div className="mt-2 flex flex-wrap gap-3 text-xs text-neutral-400">
-                          <span>👤 {apt.staff}</span>
-                          <span>📞 {apt.phone}</span>
-                          <span className="font-semibold text-rose-500">฿{apt.price.toLocaleString()}</span>
-                        </div>
-                      </div>
+                      )}
+                    </div>
 
-                      {/* Actions */}
-                      <div className="flex shrink-0 flex-col gap-1.5">
-                        {apt.status === "pending" && (
-                          <button className="rounded-lg bg-emerald-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-600 transition-colors">
-                            ยืนยัน
-                          </button>
-                        )}
-                        <button className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-1.5 text-xs font-medium text-neutral-600 hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-400 transition-colors">
-                          แก้ไข
+                    {/* Right Actions */}
+                    <div className="flex sm:flex-col items-center justify-center gap-2 pr-2 pl-2 sm:pl-0 pb-2 sm:pb-0 shrink-0">
+                      {apt.status === "pending" && (
+                        <button
+                          onClick={() => handleStatusUpdate(apt.id, "confirmed")}
+                          className="w-10 h-10 rounded-xl bg-gradient-to-r from-primary to-secondary text-white border-2 border-on-surface hover:translate-x-[1px] hover:translate-y-[1px] active:scale-95 transition-all flex items-center justify-center shadow-[2px_2px_0px_0px_#1e1b4b]"
+                          title="ยืนยันคิวจอง"
+                        >
+                          <Check className="h-5 w-5 stroke-[2.5px]" />
                         </button>
-                      </div>
+                      )}
+                      
+                      <button
+                        onClick={() => {
+                          setSelectedApt(apt)
+                          setShowEditModal(true)
+                        }}
+                        className="w-10 h-10 rounded-xl bg-surface hover:bg-neutral-50 border-2 border-on-surface transition-all active:scale-95 flex items-center justify-center shadow-[2px_2px_0px_0px_#1e1b4b]"
+                        title="แก้ไขข้อมูล"
+                      >
+                        <Edit className="h-4 w-4 text-neutral-700" />
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setSelectedApt(apt)
+                          setShowOptionsMenu(true)
+                        }}
+                        className="w-10 h-10 rounded-xl bg-surface hover:bg-neutral-50 border-2 border-on-surface transition-all active:scale-95 flex items-center justify-center shadow-[2px_2px_0px_0px_#1e1b4b]"
+                        title="ตัวเลือกการนัดหมาย"
+                      >
+                        <MoreVertical className="h-4 w-4 text-neutral-700" />
+                      </button>
                     </div>
                   </div>
                 ))}
               </div>
-            </div>
+            </section>
           ))}
         </div>
       )}
 
       {/* Add Modal */}
-      {showModal && <AddAppointmentModal onClose={() => setShowModal(false)} />}
-    </>
+      <AddAppointmentModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSave={handleAddAppointment}
+      />
+
+      {/* Edit Modal */}
+      <EditAppointmentModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        appointment={selectedApt}
+        onSave={handleEditAppointment}
+      />
+
+      {/* Options Menu Modal */}
+      <Y2KModal
+        isOpen={showOptionsMenu}
+        onClose={() => setShowOptionsMenu(false)}
+        title="จัดการการนัดหมาย"
+      >
+        <div className="flex flex-col gap-2.5">
+          {selectedApt?.status === "pending" && (
+            <button
+              onClick={() => {
+                if (selectedApt) handleStatusUpdate(selectedApt.id, "confirmed")
+                setShowOptionsMenu(false)
+              }}
+              className="w-full bg-gradient-to-r from-primary to-secondary text-white rounded-xl py-3 font-bold border-2 border-on-surface shadow-[3px_3px_0px_#1e1b4b] hover:translate-x-[1px] hover:translate-y-[1px] transition-all flex items-center justify-center gap-2 text-xs"
+            >
+              🟢 ยืนยันการนัดหมายคิว
+            </button>
+          )}
+
+          {selectedApt?.status === "confirmed" && (
+            <button
+              onClick={() => {
+                if (selectedApt) handleStatusUpdate(selectedApt.id, "done")
+                setShowOptionsMenu(false)
+              }}
+              className="w-full bg-emerald-500 text-white rounded-xl py-3 font-bold border-2 border-on-surface shadow-[3px_3px_0px_#1e1b4b] hover:translate-x-[1px] hover:translate-y-[1px] transition-all flex items-center justify-center gap-2 text-xs"
+            >
+              🎉 ลูกค้าทำเล็บเสร็จสิ้น
+            </button>
+          )}
+
+          {selectedApt?.status !== "cancelled" && (
+            <button
+              onClick={() => {
+                setShowOptionsMenu(false)
+                setShowCancelModal(true)
+              }}
+              className="w-full bg-red-500 text-white rounded-xl py-3 font-bold border-2 border-on-surface shadow-[3px_3px_0px_#1e1b4b] hover:translate-x-[1px] hover:translate-y-[1px] transition-all flex items-center justify-center gap-2 text-xs"
+            >
+              🔴 ยกเลิกคิว (แจ้งเหตุผลลูกค้า)
+            </button>
+          )}
+
+          <button
+            onClick={() => setShowOptionsMenu(false)}
+            className="w-full bg-white text-neutral-700 rounded-xl py-3 font-bold border-2 border-on-surface hover:bg-neutral-50 transition-all text-xs"
+          >
+            ย้อนกลับ
+          </button>
+        </div>
+      </Y2KModal>
+
+      {/* Cancellation Reason Modal */}
+      <Y2KModal
+        isOpen={showCancelModal}
+        onClose={() => {
+          setShowCancelModal(false)
+          setCancelReason("")
+        }}
+        title="ยกเลิกการจองคิวลูกค้า"
+      >
+        <form onSubmit={handleCancelSubmit} className="space-y-4">
+          <div className="space-y-2 text-neutral-800">
+            <p className="font-bold text-xs">คุณต้องการยกเลิกคิวของ <span className="text-primary font-black">{selectedApt?.customerName || selectedApt?.name}</span> ใช่หรือไม่?</p>
+            <p className="text-[10px] text-neutral-400">กรุณาระบุสาเหตุที่ทำการยกเลิก เพื่อเป็นประวัติการแจ้งเตือนส่งกลับไปยังลูกค้า</p>
+          </div>
+
+          <div className="space-y-1">
+            <label htmlFor="cancel-text" className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">สาเหตุที่ยกเลิก *</label>
+            <textarea
+              id="cancel-text"
+              required
+              rows={3}
+              placeholder="เช่น ช่างแนนป่วยกะทันหัน หรือ ร้านปิดปรับปรุงระบบค่ะ"
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+              className="w-full rounded-xl border-2 border-outline-variant bg-neutral-50 px-3 py-2 text-xs outline-none focus:border-primary focus:ring-0"
+            />
+          </div>
+
+          <div className="pt-2 flex gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                setShowCancelModal(false)
+                setCancelReason("")
+              }}
+              className="flex-1 h-10 rounded-xl border-2 border-on-surface bg-white text-neutral-700 font-bold hover:bg-neutral-50 active:scale-95 transition-all text-xs"
+            >
+              ย้อนกลับ
+            </button>
+            <button
+              type="submit"
+              className="flex-1 h-10 bg-red-500 text-white rounded-xl font-bold border-2 border-on-surface shadow-[2px_2px_0px_0px_#1e1b4b] hover:translate-x-[1px] hover:translate-y-[1px] active:scale-95 transition-all text-xs"
+            >
+              ยืนยันการยกเลิกคิว
+            </button>
+          </div>
+        </form>
+      </Y2KModal>
+
+      {/* Success Notification Modal */}
+      <Y2KModal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        title="ดำเนินการสำเร็จ"
+        footer={
+          <button
+            onClick={() => setShowSuccessModal(false)}
+            className="w-full bg-gradient-to-r from-primary to-secondary text-white rounded-xl py-2 px-5 font-bold border-2 border-on-surface shadow-[2px_2px_0px_0px_#1e1b4b] hover:translate-x-[1px] hover:translate-y-[1px] active:scale-95 transition-all text-xs"
+          >
+            ตกลง
+          </button>
+        }
+      >
+        <div className="text-center py-4 space-y-3">
+          <div className="text-5xl">✨</div>
+          <p className="text-sm font-black text-neutral-800">{successMessage}</p>
+        </div>
+      </Y2KModal>
+    </div>
   )
 }

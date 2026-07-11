@@ -16,10 +16,9 @@ export function LoginPage() {
   const [error, setError] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Destination after login (preserved by ProtectedRoute)
+  // Destination after login
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname ?? "/dashboard"
 
-  // Already authenticated → redirect immediately
   if (!isLoading && isAuthenticated) {
     return <Navigate to={from} replace />
   }
@@ -55,79 +54,76 @@ export function LoginPage() {
   }
 
   return (
-    <div className="relative flex min-h-screen overflow-hidden bg-gradient-to-br from-rose-50 via-pink-50 to-fuchsia-50 dark:from-rose-950/30 dark:via-pink-950/20 dark:to-fuchsia-950/30">
-      {/* Decorative blobs */}
-      <div className="pointer-events-none absolute -left-32 -top-32 h-96 w-96 rounded-full bg-rose-300/30 blur-3xl dark:bg-rose-600/20" />
-      <div className="pointer-events-none absolute -bottom-32 -right-32 h-96 w-96 rounded-full bg-pink-300/30 blur-3xl dark:bg-pink-600/20" />
-      <div className="pointer-events-none absolute left-1/2 top-1/3 h-64 w-64 -translate-x-1/2 rounded-full bg-fuchsia-200/20 blur-2xl dark:bg-fuchsia-700/10" />
-
-      {/* Left panel — branding (hidden on mobile) */}
-      <div className="relative hidden flex-col items-center justify-center gap-8 bg-gradient-to-b from-rose-500 to-pink-600 px-12 text-white lg:flex lg:w-[480px] xl:w-[540px]">
+    <div className="relative flex min-h-screen overflow-hidden bg-mesh">
+      {/* ── Left panel — branding (hidden on mobile) ── */}
+      <div className="relative hidden flex-col items-center justify-center gap-8 bg-gradient-to-br from-[#818CF8] to-[#FB923C] px-12 text-white lg:flex lg:w-[480px] xl:w-[540px] border-r-4 border-on-surface">
         {/* Pattern overlay */}
-        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(circle, white 1px, transparent 1px)", backgroundSize: "20px 20px" }} />
+        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(circle, white 2px, transparent 2px)", backgroundSize: "30px 30px" }} />
 
-        <div className="relative space-y-6 text-center">
+        <div className="relative space-y-8 text-center flex flex-col items-center">
           {/* Logo */}
-          <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-3xl bg-white/20 backdrop-blur-sm shadow-2xl ring-1 ring-white/30">
+          <div className="flex h-24 w-24 items-center justify-center rounded-3xl bg-white border-3 border-on-surface shadow-[6px_6px_0px_#1e1b4b]">
             <span className="text-5xl">💅</span>
           </div>
 
           <div>
-            <h1 className="text-5xl font-black tracking-tight">Nailly</h1>
-            <p className="mt-2 text-xl font-light text-rose-100">ระบบจัดการร้านทำเล็บ</p>
+            <h1 className="text-6xl font-black tracking-tighter leading-none drop-shadow-[4px_4px_0px_#1e1b4b] text-white">Nailly</h1>
+            <p className="mt-3 text-lg font-bold text-on-primary-container bg-primary-container/80 px-4 py-1.5 rounded-full border-2 border-primary inline-block">
+              ระบบจัดการร้านทำเล็บ
+            </p>
           </div>
 
-          <div className="space-y-4 text-left">
+          <div className="space-y-4 text-left w-full max-w-[320px] bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-5 shadow-lg">
             {[
               { icon: "📅", text: "จัดการนัดหมายลูกค้าได้ง่ายดาย" },
               { icon: "💖", text: "บริหารบริการและราคาในที่เดียว" },
               { icon: "📊", text: "รายงานรายได้และสถิติรายวัน" },
             ].map((item) => (
-              <div key={item.text} className="flex items-center gap-3 text-rose-100">
-                <span className="text-2xl">{item.icon}</span>
-                <span className="text-sm font-medium">{item.text}</span>
+              <div key={item.text} className="flex items-center gap-3 text-white">
+                <span className="text-2xl shrink-0">{item.icon}</span>
+                <span className="text-sm font-semibold tracking-wide">{item.text}</span>
               </div>
             ))}
           </div>
         </div>
 
-        <p className="absolute bottom-6 text-xs text-rose-200">
+        <p className="absolute bottom-6 text-xs text-white/70 font-semibold uppercase tracking-wider">
           © 2025 Nailly — Nail Salon Management
         </p>
       </div>
 
-      {/* Right panel — login form */}
+      {/* ── Right panel — login form ── */}
       <div className="flex flex-1 items-center justify-center p-4 sm:p-6">
         <div className="w-full max-w-md">
           {/* Mobile logo */}
           <div className="mb-6 flex flex-col items-center gap-2 lg:hidden">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-400 to-pink-500 shadow-lg shadow-rose-200 text-3xl">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white border-3 border-primary shadow-[4px_4px_0px_#FB923C] text-3xl">
               💅
             </div>
-            <div className="text-center">
-              <h1 className="text-2xl font-black text-rose-600">Nailly</h1>
-              <p className="text-xs text-neutral-400">ระบบจัดการร้านทำเล็บ</p>
+            <div className="text-center mt-1">
+              <h1 className="text-3xl font-black text-primary tracking-tighter">Nailly</h1>
+              <p className="text-xs text-secondary font-bold uppercase tracking-wider">ระบบจัดการร้านทำเล็บ</p>
             </div>
           </div>
 
           {/* Card */}
-          <div className="overflow-hidden rounded-2xl sm:rounded-3xl border border-rose-100/80 bg-white/80 shadow-2xl shadow-rose-100/50 backdrop-blur-xl dark:border-rose-900/30 dark:bg-neutral-900/80 dark:shadow-rose-950/20">
+          <div className="y2k-card overflow-hidden">
             <div className="p-6 sm:p-8">
               <div className="mb-6 sm:mb-8">
-                <h2 className="text-xl sm:text-2xl font-bold text-neutral-900 dark:text-white">
+                <h2 className="text-2xl font-black text-neutral-900 tracking-tight">
                   ยินดีต้อนรับกลับมา 👋
                 </h2>
-                <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+                <p className="mt-1 text-sm text-neutral-500 font-medium">
                   เข้าสู่ระบบเพื่อจัดการร้านทำเล็บของคุณ
                 </p>
               </div>
 
               <form onSubmit={handleSubmit} noValidate className="space-y-5">
                 {/* Username */}
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <label
                     htmlFor="login-username"
-                    className="text-sm font-medium text-neutral-700 dark:text-neutral-300"
+                    className="text-xs font-bold uppercase tracking-wider text-neutral-700"
                   >
                     ชื่อผู้ใช้
                   </label>
@@ -147,21 +143,21 @@ export function LoginPage() {
                       }}
                       placeholder="กรอกชื่อผู้ใช้"
                       className={cn(
-                        "w-full rounded-xl border bg-neutral-50/50 py-3 pl-10 pr-4 text-sm text-neutral-900 placeholder:text-neutral-400 outline-none transition-all dark:bg-neutral-800/50 dark:text-white",
-                        "focus:border-rose-400 focus:ring-3 focus:ring-rose-400/20 focus:bg-white dark:focus:bg-neutral-800",
+                        "w-full rounded-xl border bg-neutral-50/50 py-3 pl-10 pr-4 text-sm text-neutral-900 placeholder:text-neutral-400 outline-none transition-all",
+                        "focus:border-primary focus:ring-0 focus:bg-white shadow-[2px_2px_0px_0px_#c7d2fe]",
                         error
-                          ? "border-red-400 focus:border-red-400 focus:ring-red-400/20"
-                          : "border-neutral-200 dark:border-neutral-700"
+                          ? "border-red-400 focus:border-red-400"
+                          : "border-neutral-200"
                       )}
                     />
                   </div>
                 </div>
 
                 {/* Password */}
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <label
                     htmlFor="login-password"
-                    className="text-sm font-medium text-neutral-700 dark:text-neutral-300"
+                    className="text-xs font-bold uppercase tracking-wider text-neutral-700"
                   >
                     รหัสผ่าน
                   </label>
@@ -180,18 +176,18 @@ export function LoginPage() {
                       }}
                       placeholder="กรอกรหัสผ่าน"
                       className={cn(
-                        "w-full rounded-xl border bg-neutral-50/50 py-3 pl-10 pr-11 text-sm text-neutral-900 placeholder:text-neutral-400 outline-none transition-all dark:bg-neutral-800/50 dark:text-white",
-                        "focus:border-rose-400 focus:ring-3 focus:ring-rose-400/20 focus:bg-white dark:focus:bg-neutral-800",
+                        "w-full rounded-xl border bg-neutral-50/50 py-3 pl-10 pr-11 text-sm text-neutral-900 placeholder:text-neutral-400 outline-none transition-all",
+                        "focus:border-primary focus:ring-0 focus:bg-white shadow-[2px_2px_0px_0px_#c7d2fe]",
                         error
-                          ? "border-red-400 focus:border-red-400 focus:ring-red-400/20"
-                          : "border-neutral-200 dark:border-neutral-700"
+                          ? "border-red-400 focus:border-red-400"
+                          : "border-neutral-200"
                       )}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword((v) => !v)}
                       aria-label={showPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"}
-                      className="absolute inset-y-0 right-3 flex items-center text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors"
+                      className="absolute inset-y-0 right-3 flex items-center text-neutral-400 hover:text-neutral-600 transition-colors"
                     >
                       {showPassword ? (
                         <EyeOff className="h-4 w-4" />
@@ -204,9 +200,9 @@ export function LoginPage() {
 
                 {/* Error message */}
                 {error && (
-                  <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-400">
+                  <div className="flex items-center gap-2 rounded-xl border-2 border-red-300 bg-red-50 px-4 py-3 text-sm text-red-600 shadow-[2px_2px_0px_0px_rgba(239,68,68,0.2)]">
                     <AlertCircle className="h-4 w-4 shrink-0" />
-                    <span>{error}</span>
+                    <span className="font-semibold">{error}</span>
                   </div>
                 )}
 
@@ -214,10 +210,10 @@ export function LoginPage() {
                 <Button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full h-12 rounded-xl bg-gradient-to-r from-rose-500 to-pink-500 font-semibold text-white shadow-lg shadow-rose-200/50 hover:from-rose-600 hover:to-pink-600 hover:shadow-rose-300/50 dark:shadow-rose-900/30 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]"
+                  className="w-full h-12 rounded-xl bg-gradient-to-r from-primary to-secondary border-2 border-on-surface shadow-[4px_4px_0px_0px_#1e1b4b] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#1e1b4b] active:scale-95 transition-all text-white font-bold uppercase tracking-wider"
                 >
                   {isSubmitting ? (
-                    <span className="flex items-center gap-2">
+                    <span className="flex items-center justify-center gap-2">
                       <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
                       กำลังเข้าสู่ระบบ...
                     </span>
@@ -228,29 +224,29 @@ export function LoginPage() {
               </form>
 
               {/* Demo credentials hint */}
-              <div className="mt-6 rounded-2xl border border-rose-100 bg-rose-50/50 p-4 dark:border-rose-900/30 dark:bg-rose-950/20">
+              <div className="mt-6 rounded-2xl border-2 border-primary-container bg-primary-container/20 p-4 shadow-[3px_3px_0px_0px_#e0e7ff]">
                 <div className="flex items-start gap-2">
-                  <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-rose-400" />
-                  <div className="flex-1 text-xs text-neutral-600 dark:text-neutral-400">
-                    <p className="font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
+                  <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                  <div className="flex-1 text-xs text-neutral-600">
+                    <p className="font-bold text-neutral-800 mb-1">
                       ข้อมูลสำหรับทดสอบ
                     </p>
-                    <p>
+                    <p className="font-semibold">
                       Username:{" "}
-                      <code className="rounded bg-white/70 px-1.5 py-0.5 font-mono text-rose-600 dark:bg-neutral-800 dark:text-rose-400">
+                      <code className="rounded bg-white border border-neutral-200 px-1.5 py-0.5 font-mono text-primary">
                         admin
                       </code>
                     </p>
-                    <p className="mt-1">
+                    <p className="mt-1 font-semibold">
                       Password:{" "}
-                      <code className="rounded bg-white/70 px-1.5 py-0.5 font-mono text-rose-600 dark:bg-neutral-800 dark:text-rose-400">
+                      <code className="rounded bg-white border border-neutral-200 px-1.5 py-0.5 font-mono text-primary">
                         nailly2025
                       </code>
                     </p>
                     <button
                       type="button"
                       onClick={fillDemo}
-                      className="mt-2 text-rose-500 hover:text-rose-700 underline underline-offset-2 transition-colors"
+                      className="mt-2 text-primary hover:text-secondary font-bold underline underline-offset-2 transition-colors block text-left"
                     >
                       กรอกอัตโนมัติ →
                     </button>
