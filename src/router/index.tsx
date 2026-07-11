@@ -1,23 +1,27 @@
 import { createBrowserRouter, Navigate } from "react-router-dom"
 import { ProtectedRoute } from "@/components/layout/ProtectedRoute"
+import { AppLayout } from "@/components/layout/AppLayout"
 import { LoginPage } from "@/pages/LoginPage"
 import { DashboardPage } from "@/pages/DashboardPage"
+import { AppointmentsPage } from "@/pages/AppointmentsPage"
+import { ServicesPage } from "@/pages/ServicesPage"
+import { CustomersPage } from "@/pages/CustomersPage"
+import { ReportsPage } from "@/pages/ReportsPage"
 
 /**
  * Application route definitions.
  *
  * Route structure:
- *   /               → Redirect to /dashboard
- *   /login          → Login page (redirects to /dashboard if already authenticated)
- *   /dashboard      → Protected: requires login
- *
- * To add new protected pages:
- *   1. Create a new `*Page.tsx` in src/pages/
- *   2. Add a new route object inside the ProtectedRoute children array
+ *   /                  → Redirect to /dashboard
+ *   /login             → Login page
+ *   /dashboard         → Protected: ภาพรวม
+ *   /appointments      → Protected: นัดหมาย
+ *   /services          → Protected: บริการ
+ *   /customers         → Protected: ลูกค้า
+ *   /reports           → Protected: รายงาน
  */
 export const router = createBrowserRouter([
   {
-    // Root: redirect to /dashboard
     path: "/",
     element: <Navigate to="/dashboard" replace />,
   },
@@ -26,21 +30,22 @@ export const router = createBrowserRouter([
     element: <LoginPage />,
   },
   {
-    // Protected area — all children require authentication
+    // ProtectedRoute guards auth; AppLayout provides shared header/nav
     element: <ProtectedRoute />,
     children: [
       {
-        path: "/dashboard",
-        element: <DashboardPage />,
+        element: <AppLayout />,
+        children: [
+          { path: "/dashboard",     element: <DashboardPage /> },
+          { path: "/appointments",  element: <AppointmentsPage /> },
+          { path: "/services",      element: <ServicesPage /> },
+          { path: "/customers",     element: <CustomersPage /> },
+          { path: "/reports",       element: <ReportsPage /> },
+        ],
       },
-      // Add more protected routes here, e.g.:
-      // { path: "/appointments", element: <AppointmentsPage /> },
-      // { path: "/customers", element: <CustomersPage /> },
-      // { path: "/services", element: <ServicesPage /> },
     ],
   },
   {
-    // 404 fallback — redirect to dashboard
     path: "*",
     element: <Navigate to="/dashboard" replace />,
   },
