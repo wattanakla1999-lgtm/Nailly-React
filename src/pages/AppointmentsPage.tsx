@@ -79,11 +79,12 @@ const FILTER_TABS: { label: string; value: AppStatus | "all" }[] = [
   { label: "ยกเลิก", value: "cancelled" },
 ]
 
-const STATUS_CONFIG: Record<AppStatus, { label: string; styles: string }> = {
+const STATUS_CONFIG: Record<string, { label: string; styles: string }> = {
   confirmed: { label: "ยืนยันแล้ว", styles: "bg-tertiary-container text-tertiary border-tertiary" },
   pending:   { label: "รอยืนยัน",  styles: "bg-secondary-container text-on-secondary-container border-secondary" },
   done:      { label: "เสร็จสิ้น", styles: "bg-neutral-100 text-neutral-500 border-neutral-300" },
   cancelled: { label: "ยกเลิก",    styles: "bg-red-100 text-red-600 border-red-300" },
+  active:    { label: "กำลังรับบริการ", styles: "bg-purple-100 text-purple-600 border-purple-300" },
 }
 
 // ─── Add Appointment Modal ───────────────────────────────────────────────────
@@ -627,8 +628,8 @@ export function AppointmentsPage() {
                     <div className="flex-grow flex flex-col justify-center text-xs space-y-1.5 font-bold text-neutral-600">
                       <div className="flex items-center gap-3 mb-1">
                         <h4 className="text-lg font-black text-on-surface">{apt.customerName || apt.name}</h4>
-                        <span className={cn("px-3 py-0.5 rounded-full font-bold text-[10px] tracking-wide border-2", STATUS_CONFIG[apt.status].styles)}>
-                          {STATUS_CONFIG[apt.status].label}
+                        <span className={cn("px-3 py-0.5 rounded-full font-bold text-[10px] tracking-wide border-2", (STATUS_CONFIG[apt.status] || STATUS_CONFIG.pending).styles)}>
+                          {(STATUS_CONFIG[apt.status] || STATUS_CONFIG.pending).label}
                         </span>
                       </div>
                       
