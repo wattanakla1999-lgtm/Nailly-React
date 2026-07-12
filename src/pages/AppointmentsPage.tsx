@@ -1,28 +1,11 @@
-import React, { useState, useEffect } from "react"
-import { Calendar, Plus, Search, Edit, Check, MoreVertical, Sparkles, User, Phone, DollarSign } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Calendar, Plus, Search, Edit, Check, MoreVertical, Sparkles } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Y2KModal } from "@/components/Y2KModal"
-
-// ─── Types ───────────────────────────────────────────────────────────────────
-
-type AppStatus = "confirmed" | "pending" | "done" | "cancelled"
-
-interface Appointment {
-  id: string
-  customerName: string
-  name?: string // Backwards compatibility for booking flow
-  phone: string
-  service: string
-  staff: string
-  staffImg?: string
-  date: string
-  time: string
-  duration: number
-  price: number
-  status: AppStatus
-  iconType?: "dry_cleaning" | "brush" | "spa"
-  cancelReason?: string
-}
+import { AddAppointmentModal } from "@/components/appointments/AddAppointmentModal"
+import { EditAppointmentModal } from "@/components/appointments/EditAppointmentModal"
+import { LoadingPopup } from "@/components/LoadingPopup"
+import type { Appointment, AppStatus } from "@/types"
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
 
@@ -87,355 +70,11 @@ const STATUS_CONFIG: Record<string, { label: string; styles: string }> = {
   active:    { label: "กำลังรับบริการ", styles: "bg-purple-100 text-purple-600 border-purple-300" },
 }
 
-// ─── Add Appointment Modal ───────────────────────────────────────────────────
-
-interface AddModalProps {
-  isOpen: boolean
-  onClose: () => void
-  onSave: (apt: Appointment) => void
-}
-
-function AddAppointmentModal({ isOpen, onClose, onSave }: AddModalProps) {
-  const [customerName, setCustomerName] = useState("")
-  const [phone, setPhone] = useState("")
-  const [service, setService] = useState("เจลเมนิเกียร์")
-  const [staff, setStaff] = useState("พี่แนน")
-  const [date, setDate] = useState(new Date().toISOString().split("T")[0])
-  const [time, setTime] = useState("10:00")
-  const [price, setPrice] = useState(550)
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!customerName || !phone) {
-      alert("กรุณากรอกข้อมูลสำคัญให้ครบถ้วน")
-      return
-    }
-
-    const todayStr = new Date().toISOString().split("T")[0]
-    const tomorrow = new Date()
-    tomorrow.setDate(tomorrow.getDate() + 1)
-    const tomorrowStr = tomorrow.toISOString().split("T")[0]
-
-    let displayDate = date
-    if (date === todayStr) displayDate = "วันนี้"
-    else if (date === tomorrowStr) displayDate = "พรุ่งนี้"
-
-    onSave({
-      id: String(Date.now()),
-      customerName,
-      name: customerName,
-      phone,
-      service,
-      staff,
-      staffImg: staff === "พี่แนน" ? "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=100" : "https://images.unsplash.com/photo-1519014816548-bf5fe059798b?w=100",
-      date: displayDate,
-      time,
-      duration: 60,
-      price,
-      status: "pending",
-    })
-  }
-
-  return (
-    <Y2KModal isOpen={isOpen} onClose={onClose} title="เพิ่มการนัดหมายใหม่">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-1">
-          <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">ชื่อลูกค้า *</label>
-          <div className="relative">
-            <User className="absolute left-3 top-1/2 -translate-y-1/2 text-outline h-4 w-4" />
-            <input
-              type="text"
-              required
-              value={customerName}
-              onChange={(e) => setCustomerName(e.target.value)}
-              placeholder="ระบุชื่อลูกค้า"
-              className="w-full h-10 pl-9 pr-3 bg-surface border-2 border-outline-variant focus:border-primary focus:ring-0 rounded-xl font-bold text-xs outline-none"
-            />
-          </div>
-        </div>
-
-        <div className="space-y-1">
-          <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">เบอร์โทรศัพท์ *</label>
-          <div className="relative">
-            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-outline h-4 w-4" />
-            <input
-              type="text"
-              required
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="เช่น 0812345678"
-              className="w-full h-10 pl-9 pr-3 bg-surface border-2 border-outline-variant focus:border-primary focus:ring-0 rounded-xl font-bold text-xs outline-none"
-            />
-          </div>
-        </div>
-
-        <div className="space-y-1">
-          <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">บริการ</label>
-          <select
-            value={service}
-            onChange={(e) => setService(e.target.value)}
-            className="w-full h-10 px-3 bg-surface border-2 border-outline-variant focus:border-primary focus:ring-0 rounded-xl font-bold text-xs outline-none"
-          >
-            <option value="เมนิเกียร์คลาสสิก">เมนิเกียร์คลาสสิก (฿250)</option>
-            <option value="เจลเมนิเกียร์">เจลเมนิเกียร์ (฿550)</option>
-            <option value="เฟรนช์เมนิเกียร์">เฟรนช์เมนิเกียร์ (฿450)</option>
-            <option value="เพนท์ลวดลาย">เพนท์ลวดลาย (฿150)</option>
-            <option value="ต่อเล็บ PVC/เจล">ต่อเล็บ PVC/เจล (฿900)</option>
-          </select>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">วันที่สะดวก</label>
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="w-full h-10 px-3 bg-surface border-2 border-outline-variant focus:border-primary focus:ring-0 rounded-xl font-bold text-xs outline-none"
-            />
-          </div>
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">เวลา</label>
-            <input
-              type="time"
-              value={time}
-              onChange={(e) => setTime(e.target.value)}
-              className="w-full h-10 px-3 bg-surface border-2 border-outline-variant focus:border-primary focus:ring-0 rounded-xl font-bold text-xs outline-none"
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">ช่างผู้ให้บริการ</label>
-            <select
-              value={staff}
-              onChange={(e) => setStaff(e.target.value)}
-              className="w-full h-10 px-3 bg-surface border-2 border-outline-variant focus:border-primary focus:ring-0 rounded-xl font-bold text-xs outline-none"
-            >
-              <option value="พี่แนน">พี่แนน</option>
-              <option value="น้องมายด์">น้องมายด์</option>
-            </select>
-          </div>
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">ราคาพิเศษ (บาท)</label>
-            <div className="relative">
-              <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 text-outline h-4 w-4" />
-              <input
-                type="number"
-                value={price}
-                onChange={(e) => setPrice(Number(e.target.value))}
-                className="w-full h-10 pl-9 pr-3 bg-surface border-2 border-outline-variant focus:border-primary focus:ring-0 rounded-xl font-bold text-xs outline-none"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="pt-4 flex gap-3">
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex-1 h-10 rounded-xl border-2 border-on-surface bg-white text-neutral-700 font-bold hover:bg-neutral-50 active:scale-95 transition-all text-xs"
-          >
-            ยกเลิก
-          </button>
-          <button
-            type="submit"
-            className="flex-1 h-10 bg-gradient-to-r from-primary to-secondary text-white rounded-xl font-bold border-2 border-on-surface shadow-[2px_2px_0px_0px_#1e1b4b] hover:translate-x-[1px] hover:translate-y-[1px] active:scale-95 transition-all text-xs"
-          >
-            บันทึกการนัดหมาย
-          </button>
-        </div>
-      </form>
-    </Y2KModal>
-  )
-}
-
-// ─── Edit Appointment Modal ──────────────────────────────────────────────────
-
-interface EditModalProps {
-  isOpen: boolean
-  onClose: () => void
-  onSave: (apt: Appointment) => void
-  appointment: Appointment | null
-}
-
-function EditAppointmentModal({ isOpen, onClose, onSave, appointment }: EditModalProps) {
-  const [customerName, setCustomerName] = useState("")
-  const [phone, setPhone] = useState("")
-  const [service, setService] = useState("")
-  const [staff, setStaff] = useState("")
-  const [date, setDate] = useState("")
-  const [time, setTime] = useState("")
-  const [price, setPrice] = useState(0)
-
-  useEffect(() => {
-    if (appointment) {
-      setCustomerName(appointment.customerName || appointment.name || "")
-      setPhone(appointment.phone)
-      setService(appointment.service)
-      setStaff(appointment.staff)
-      
-      let formattedDate = appointment.date
-      const todayStr = new Date().toISOString().split("T")[0]
-      const tomorrow = new Date()
-      tomorrow.setDate(tomorrow.getDate() + 1)
-      const tomorrowStr = tomorrow.toISOString().split("T")[0]
-
-      if (appointment.date === "วันนี้") formattedDate = todayStr
-      else if (appointment.date === "พรุ่งนี้") formattedDate = tomorrowStr
-
-      setDate(formattedDate)
-      setTime(appointment.time)
-      setPrice(appointment.price)
-    }
-  }, [appointment])
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!appointment) return
-
-    const todayStr = new Date().toISOString().split("T")[0]
-    const tomorrow = new Date()
-    tomorrow.setDate(tomorrow.getDate() + 1)
-    const tomorrowStr = tomorrow.toISOString().split("T")[0]
-
-    let displayDate = date
-    if (date === todayStr) displayDate = "วันนี้"
-    else if (date === tomorrowStr) displayDate = "พรุ่งนี้"
-
-    onSave({
-      ...appointment,
-      customerName,
-      name: customerName,
-      phone,
-      service,
-      staff,
-      date: displayDate,
-      time,
-      price,
-    })
-  }
-
-  return (
-    <Y2KModal isOpen={isOpen} onClose={onClose} title="แก้ไขการนัดหมาย">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-1">
-          <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">ชื่อลูกค้า *</label>
-          <div className="relative">
-            <User className="absolute left-3 top-1/2 -translate-y-1/2 text-outline h-4 w-4" />
-            <input
-              type="text"
-              required
-              value={customerName}
-              onChange={(e) => setCustomerName(e.target.value)}
-              className="w-full h-10 pl-9 pr-3 bg-surface border-2 border-outline-variant focus:border-primary focus:ring-0 rounded-xl font-bold text-xs outline-none"
-            />
-          </div>
-        </div>
-
-        <div className="space-y-1">
-          <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">เบอร์โทรศัพท์ *</label>
-          <div className="relative">
-            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-outline h-4 w-4" />
-            <input
-              type="text"
-              required
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              className="w-full h-10 pl-9 pr-3 bg-surface border-2 border-outline-variant focus:border-primary focus:ring-0 rounded-xl font-bold text-xs outline-none"
-            />
-          </div>
-        </div>
-
-        <div className="space-y-1">
-          <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">บริการ</label>
-          <select
-            value={service}
-            onChange={(e) => setService(e.target.value)}
-            className="w-full h-10 px-3 bg-surface border-2 border-outline-variant focus:border-primary focus:ring-0 rounded-xl font-bold text-xs outline-none"
-          >
-            <option value="เมนิเกียร์คลาสสิก">เมนิเกียร์คลาสสิก (฿250)</option>
-            <option value="เจลเมนิเกียร์">เจลเมนิเกียร์ (฿550)</option>
-            <option value="เฟรนช์เมนิเกียร์">เฟรนช์เมนิเกียร์ (฿450)</option>
-            <option value="เพนท์ลวดลาย">เพนท์ลวดลาย (฿150)</option>
-            <option value="ต่อเล็บ PVC/เจล">ต่อเล็บ PVC/เจล (฿900)</option>
-          </select>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">วันที่นัด</label>
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="w-full h-10 px-3 bg-surface border-2 border-outline-variant focus:border-primary focus:ring-0 rounded-xl font-bold text-xs outline-none"
-            />
-          </div>
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">เวลา</label>
-            <input
-              type="time"
-              value={time}
-              onChange={(e) => setTime(e.target.value)}
-              className="w-full h-10 px-3 bg-surface border-2 border-outline-variant focus:border-primary focus:ring-0 rounded-xl font-bold text-xs outline-none"
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">ช่างผู้ให้บริการ</label>
-            <select
-              value={staff}
-              onChange={(e) => setStaff(e.target.value)}
-              className="w-full h-10 px-3 bg-surface border-2 border-outline-variant focus:border-primary focus:ring-0 rounded-xl font-bold text-xs outline-none"
-            >
-              <option value="พี่แนน">พี่แนน</option>
-              <option value="น้องมายด์">น้องมายด์</option>
-            </select>
-          </div>
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">ราคาพิเศษ (บาท)</label>
-            <div className="relative">
-              <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 text-outline h-4 w-4" />
-              <input
-                type="number"
-                value={price}
-                onChange={(e) => setPrice(Number(e.target.value))}
-                className="w-full h-10 pl-9 pr-3 bg-surface border-2 border-outline-variant focus:border-primary focus:ring-0 rounded-xl font-bold text-xs outline-none"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="pt-4 flex gap-3">
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex-1 h-10 rounded-xl border-2 border-on-surface bg-white text-neutral-700 font-bold hover:bg-neutral-50 active:scale-95 transition-all text-xs"
-          >
-            ยกเลิก
-          </button>
-          <button
-            type="submit"
-            className="flex-1 h-10 bg-gradient-to-r from-primary to-secondary text-white rounded-xl font-bold border-2 border-on-surface shadow-[2px_2px_0px_0px_#1e1b4b] hover:translate-x-[1px] hover:translate-y-[1px] active:scale-95 transition-all text-xs"
-          >
-            บันทึกการเปลี่ยนแปลง
-          </button>
-        </div>
-      </form>
-    </Y2KModal>
-  )
-}
-
-// ─── Appointments Page ────────────────────────────────────────────────────────
-
 export function AppointmentsPage() {
   const [appointments, setAppointments] = useState<Appointment[]>([])
   const [activeFilter, setActiveFilter] = useState<AppStatus | "all">("all")
   const [searchQuery, setSearchQuery] = useState("")
+  const [loading, setLoading] = useState(true)
 
   // Modal display states
   const [showAddModal, setShowAddModal] = useState(false)
@@ -451,6 +90,7 @@ export function AppointmentsPage() {
 
   // Load from localStorage or merge with mock on mount
   useEffect(() => {
+    setLoading(true)
     const stored = localStorage.getItem("nailly_custom_appointments")
     if (stored) {
       try {
@@ -462,6 +102,11 @@ export function AppointmentsPage() {
       localStorage.setItem("nailly_custom_appointments", JSON.stringify(MOCK_APPOINTMENTS))
       setAppointments(MOCK_APPOINTMENTS)
     }
+
+    const timer = setTimeout(() => {
+      setLoading(false)
+    }, 600)
+    return () => clearTimeout(timer)
   }, [])
 
   const saveAppointmentsList = (updated: Appointment[]) => {
@@ -538,6 +183,8 @@ export function AppointmentsPage() {
 
   return (
     <div className="space-y-8">
+      <LoadingPopup isOpen={loading} message="กำลังเรียกดูข้อมูลคิวนัดหมาย..." />
+
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
@@ -655,7 +302,7 @@ export function AppointmentsPage() {
                     <div className="flex sm:flex-col items-center justify-center gap-2 pr-2 pl-2 sm:pl-0 pb-2 sm:pb-0 shrink-0">
                       {apt.status === "pending" && (
                         <button
-                          onClick={() => handleStatusUpdate(apt.id, "confirmed")}
+                          onClick={() => handleStatusUpdate(apt.id!, "confirmed")}
                           className="w-10 h-10 rounded-xl bg-gradient-to-r from-primary to-secondary text-white border-2 border-on-surface hover:translate-x-[1px] hover:translate-y-[1px] active:scale-95 transition-all flex items-center justify-center shadow-[2px_2px_0px_0px_#1e1b4b]"
                           title="ยืนยันคิวจอง"
                         >
@@ -718,7 +365,7 @@ export function AppointmentsPage() {
           {selectedApt?.status === "pending" && (
             <button
               onClick={() => {
-                if (selectedApt) handleStatusUpdate(selectedApt.id, "confirmed")
+                if (selectedApt) handleStatusUpdate(selectedApt.id!, "confirmed")
                 setShowOptionsMenu(false)
               }}
               className="w-full bg-gradient-to-r from-primary to-secondary text-white rounded-xl py-3 font-bold border-2 border-on-surface shadow-[3px_3px_0px_#1e1b4b] hover:translate-x-[1px] hover:translate-y-[1px] transition-all flex items-center justify-center gap-2 text-xs"
@@ -730,7 +377,7 @@ export function AppointmentsPage() {
           {selectedApt?.status === "confirmed" && (
             <button
               onClick={() => {
-                if (selectedApt) handleStatusUpdate(selectedApt.id, "done")
+                if (selectedApt) handleStatusUpdate(selectedApt.id!, "done")
                 setShowOptionsMenu(false)
               }}
               className="w-full bg-emerald-500 text-white rounded-xl py-3 font-bold border-2 border-on-surface shadow-[3px_3px_0px_#1e1b4b] hover:translate-x-[1px] hover:translate-y-[1px] transition-all flex items-center justify-center gap-2 text-xs"

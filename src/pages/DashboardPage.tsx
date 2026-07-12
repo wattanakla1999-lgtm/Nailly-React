@@ -13,110 +13,22 @@ import {
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/useAuth"
 import { cn } from "@/lib/utils"
-
-// ─── Stat Card ───────────────────────────────────────────────────────────────
-
-interface StatCardProps {
-  icon: React.ReactNode
-  label: string
-  value: string
-  sub?: React.ReactNode
-  color: string
-  to?: string
-}
-
-function StatCard({ icon, label, value, sub, color, to }: StatCardProps) {
-  const navigate = useNavigate()
-  return (
-    <div
-      onClick={() => to && navigate(to)}
-      className="y2k-card p-5 flex flex-col gap-3 relative overflow-hidden group cursor-pointer"
-    >
-      <div className="flex items-center gap-3">
-        <div className={`w-12 h-12 rounded-xl flex items-center justify-center border-2 shadow-[2px_2px_0px_currentColor] ${color}`}>
-          {icon}
-        </div>
-        <span className="font-bold text-xs text-on-surface uppercase tracking-wide">{label}</span>
-      </div>
-      <div className="flex items-baseline gap-3 mt-2">
-        <span className="font-black text-3xl text-on-surface">{value}</span>
-        {sub}
-      </div>
-    </div>
-  )
-}
-
-// ─── Upcoming Appointment Row ──────────────────────────────────────────────────
-
-interface AppointmentRowProps {
-  name: string
-  service: string
-  time: string
-  status: "active" | "pending" | "confirmed" | "done" | "cancelled"
-  avatarText?: string
-  imgUrl?: string
-}
-
-const STATUS_CONFIG: Record<string, { label: string; styles: string }> = {
-  active: {
-    label: "กำลังรับบริการ",
-    styles: "bg-tertiary-container text-tertiary border-tertiary shadow-[2px_2px_0px_#a78bfa]",
-  },
-  pending: {
-    label: "รอยืนยัน",
-    styles: "bg-surface-variant text-on-surface-variant border-outline-variant shadow-[2px_2px_0px_#c7d2fe]",
-  },
-  confirmed: {
-    label: "ยืนยันแล้ว",
-    styles: "bg-primary-container text-primary border-primary shadow-[2px_2px_0px_#818CF8]",
-  },
-  done: {
-    label: "เสร็จสิ้น",
-    styles: "bg-neutral-100 text-neutral-500 border-neutral-300 shadow-[2px_2px_0px_#d4d4d8]",
-  },
-  cancelled: {
-    label: "ยกเลิกแล้ว",
-    styles: "bg-red-100 text-red-600 border-red-300 shadow-[2px_2px_0px_#fca5a5]",
-  },
-}
-
-function AppointmentRow({ name, service, time, status, avatarText, imgUrl }: AppointmentRowProps) {
-  const config = STATUS_CONFIG[status] || STATUS_CONFIG.pending;
-  return (
-    <div className="flex items-center gap-4 p-4 hover:bg-surface-variant/40 rounded-xl transition-all duration-200 border-2 border-transparent hover:border-outline-variant group">
-      {imgUrl ? (
-        <img
-          alt={name}
-          className="w-14 h-14 rounded-xl object-cover shrink-0 border-2 border-primary shadow-[2px_2px_0px_#818CF8]"
-          src={imgUrl}
-        />
-      ) : (
-        <div className="w-14 h-14 rounded-xl shrink-0 border-2 border-primary shadow-[2px_2px_0px_#818CF8] flex items-center justify-center bg-primary-container text-primary font-black text-xl">
-          {avatarText || name.charAt(0)}
-        </div>
-      )}
-      <div className="flex-grow min-w-0">
-        <h4 className="font-bold text-base sm:text-lg text-on-surface truncate">{name}</h4>
-        <p className="font-medium text-xs text-on-surface-variant truncate mt-0.5">{service}</p>
-      </div>
-      <div className="text-right shrink-0 flex flex-col items-end">
-        <p className="font-black text-base sm:text-lg text-on-surface">{time} น.</p>
-        <span className={`inline-block mt-2 font-bold text-[10px] sm:text-xs px-2.5 py-1 rounded-lg border-2 uppercase ${config.styles}`}>
-          {config.label}
-        </span>
-      </div>
-    </div>
-  )
-}
-
-// ─── Dashboard Page ───────────────────────────────────────────────────────────
+import { StatCard } from "@/components/StatCard"
+import { AppointmentRow } from "@/components/AppointmentRow"
+import { LoadingPopup } from "@/components/LoadingPopup"
+import type { Appointment } from "@/types"
 
 export function DashboardPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
-  const [customAppointments, setCustomAppointments] = useState<any[]>([])
+  const [customAppointments, setCustomAppointments] = useState<Appointment[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false)
+    }, 600)
+
     try {
       const stored = localStorage.getItem("nailly_custom_appointments")
       if (stored) {
@@ -125,6 +37,8 @@ export function DashboardPage() {
     } catch (e) {
       console.error(e)
     }
+
+    return () => clearTimeout(timer)
   }, [])
 
   const todayStr = new Date().toLocaleDateString("th-TH", {
@@ -136,6 +50,8 @@ export function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-8">
+      <LoadingPopup isOpen={loading} message="กำลังโหลดข้อมูลแดชบอร์ด..." />
+
       {/* Welcome Header */}
       <section className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>

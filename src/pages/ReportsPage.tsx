@@ -1,25 +1,10 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { TrendingUp, TrendingDown, Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-
-// ─── Types ───────────────────────────────────────────────────────────────────
-
-interface DayRevenue {
-  day: string
-  revenue: number
-  appointments: number
-}
-
-interface Transaction {
-  id: string
-  customer: string
-  service: string
-  amount: number
-  time: string
-  staff: string
-  method: "cash" | "transfer" | "card"
-}
+import { BarChart } from "@/components/BarChart"
+import { LoadingPopup } from "@/components/LoadingPopup"
+import type { DayRevenue, Transaction } from "@/types"
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
 
@@ -53,33 +38,16 @@ const METHOD_CONFIG: Record<Transaction["method"], { label: string; styles: stri
   card:     { label: "บัตร", styles: "bg-violet-100 text-violet-700 border-violet-500 shadow-[1px_1px_0px_rgba(139,92,246,0.2)]" },
 }
 
-function BarChart({ data, maxValue }: { data: DayRevenue[]; maxValue: number }) {
-  return (
-    <div className="flex h-48 items-end justify-between gap-1.5 px-1 pt-6">
-      {data.map(({ day, revenue }) => {
-        const heightPct = maxValue > 0 ? (revenue / maxValue) * 100 : 0
-        return (
-          <div key={day} className="group flex flex-1 flex-col items-center gap-1.5 h-full justify-end">
-            <div className="hidden group-hover:flex flex-col items-center">
-              <div className="rounded-lg bg-neutral-900 px-2.5 py-1 text-[10px] text-white whitespace-nowrap shadow-md border border-neutral-700 font-bold">
-                ฿{revenue.toLocaleString()}
-              </div>
-              <div className="h-1.5 w-0.5 bg-neutral-900" />
-            </div>
-            <div
-              className="w-full rounded-t-lg bg-gradient-to-t from-primary to-secondary transition-all duration-300 hover:scale-x-105 cursor-pointer min-h-[4px] border-x-2 border-t-2 border-on-surface"
-              style={{ height: `${heightPct}%` }}
-            />
-            <span className="text-[10px] text-neutral-400 font-bold">{day}</span>
-          </div>
-        )
-      })}
-    </div>
-  )
-}
-
 export function ReportsPage() {
   const [period, setPeriod] = useState<"week" | "month">("week")
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false)
+    }, 600)
+    return () => clearTimeout(timer)
+  }, [period])
 
   const chartData = period === "week" ? WEEKLY_DATA : MONTHLY_DATA
   const maxRevenue = Math.max(...chartData.map((d) => d.revenue))
@@ -92,6 +60,8 @@ export function ReportsPage() {
 
   return (
     <div className="space-y-8">
+      <LoadingPopup isOpen={loading} message="กำลังสรุปยอดรายงาน..." />
+
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
