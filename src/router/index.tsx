@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate } from "react-router-dom"
+import { createBrowserRouter, Navigate, Outlet } from "react-router-dom"
 import { ProtectedRoute } from "@/components/layout/ProtectedRoute"
 import { AppLayout } from "@/components/layout/AppLayout"
 import { LoginPage } from "@/pages/LoginPage"
@@ -9,6 +9,7 @@ import { CustomersPage } from "@/pages/CustomersPage"
 import { ReportsPage } from "@/pages/ReportsPage"
 import { SettingsPage } from "@/pages/SettingsPage"
 import { CustomerBookingPage } from "@/pages/CustomerBookingPage"
+import { AxiosInterceptor } from "@/components/AxiosInterceptor"
 
 /**
  * Application route definitions.
@@ -25,32 +26,42 @@ import { CustomerBookingPage } from "@/pages/CustomerBookingPage"
  */
 export const router = createBrowserRouter([
   {
-    path: "/",
-    element: <CustomerBookingPage />,
-  },
-  {
-    path: "/login",
-    element: <LoginPage />,
-  },
-  {
-    // ProtectedRoute guards auth; AppLayout provides shared header/nav
-    element: <ProtectedRoute />,
+    element: (
+      <AxiosInterceptor>
+        <Outlet />
+      </AxiosInterceptor>
+    ),
     children: [
       {
-        element: <AppLayout />,
+        path: "/",
+        element: <CustomerBookingPage />,
+      },
+      {
+        path: "/login",
+        element: <LoginPage />,
+      },
+      {
+        // ProtectedRoute guards auth; AppLayout provides shared header/nav
+        element: <ProtectedRoute />,
         children: [
-          { path: "/dashboard",     element: <DashboardPage /> },
-          { path: "/appointments",  element: <AppointmentsPage /> },
-          { path: "/services",      element: <ServicesPage /> },
-          { path: "/customers",     element: <CustomersPage /> },
-          { path: "/reports",       element: <ReportsPage /> },
-          { path: "/settings",      element: <SettingsPage /> },
+          {
+            element: <AppLayout />,
+            children: [
+              { path: "/dashboard",     element: <DashboardPage /> },
+              { path: "/appointments",  element: <AppointmentsPage /> },
+              { path: "/services",      element: <ServicesPage /> },
+              { path: "/customers",     element: <CustomersPage /> },
+              { path: "/reports",       element: <ReportsPage /> },
+              { path: "/settings",      element: <SettingsPage /> },
+            ],
+          },
         ],
+      },
+      {
+        path: "*",
+        element: <Navigate to="/" replace />,
       },
     ],
   },
-  {
-    path: "*",
-    element: <Navigate to="/" replace />,
-  },
 ])
+
