@@ -182,20 +182,20 @@ export function AppointmentsPage() {
   }, {})
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4">
       <LoadingPopup isOpen={loading} message="กำลังเรียกดูข้อมูลคิวนัดหมาย..." />
 
       {/* Header Section */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-black text-on-surface flex items-baseline gap-3 tracking-tight">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="flex items-baseline gap-2 text-2xl font-black tracking-tight text-on-surface">
             การนัดหมาย
-            <span className="text-xl text-outline font-normal">({filtered.length})</span>
+            <span className="text-base font-normal text-outline">({filtered.length})</span>
           </h1>
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="bg-gradient-to-r from-primary to-secondary text-white px-6 py-3 rounded-xl font-bold border-2 border-on-surface shadow-[4px_4px_0px_0px_#1e1b4b] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#1e1b4b] active:scale-95 transition-all flex items-center gap-2 justify-center w-full sm:w-auto text-sm"
+          className="flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl border-2 border-on-surface bg-gradient-to-r from-primary to-secondary px-3 text-xs font-bold text-white shadow-[3px_3px_0px_0px_#1e1b4b] transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#1e1b4b] active:scale-95"
         >
           <Plus className="h-4 w-4 stroke-[3px]" />
           เพิ่มนัดหมาย
@@ -203,15 +203,15 @@ export function AppointmentsPage() {
       </div>
 
       {/* Search & Filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
+      <div className="flex gap-2">
         <div className="relative flex-1">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-outline h-5 w-5" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-outline" />
           <input
             type="text"
             placeholder="ค้นหาชื่อลูกค้า, บริการ..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full h-12 pl-12 pr-4 bg-surface border-2 border-outline-variant focus:border-primary focus:ring-0 rounded-xl font-bold transition-all outline-none placeholder:text-outline-variant shadow-[2px_2px_0px_0px_#c7d2fe]"
+            className="h-10 w-full rounded-xl border-2 border-outline-variant bg-surface pl-10 pr-3 text-xs font-bold outline-none shadow-[2px_2px_0px_0px_#c7d2fe] transition-all placeholder:text-outline-variant focus:border-primary focus:ring-0"
           />
         </div>
       </div>
@@ -225,7 +225,7 @@ export function AppointmentsPage() {
               key={value}
               onClick={() => setActiveFilter(value)}
               className={cn(
-                "px-5 py-2.5 rounded-full font-bold text-xs whitespace-nowrap transition-all border-2",
+                "whitespace-nowrap rounded-full border-2 px-4 py-2 text-[10px] font-bold transition-all",
                 isActive
                   ? "bg-gradient-to-r from-primary to-secondary text-white border-on-surface shadow-[2px_2px_0px_0px_#1e1b4b]"
                   : "bg-white border-outline-variant text-on-surface hover:bg-surface-variant shadow-[2px_2px_0px_0px_#c7d2fe]"
@@ -244,45 +244,45 @@ export function AppointmentsPage() {
           <p className="font-bold text-sm">ไม่พบนัดหมายในขณะนี้</p>
         </div>
       ) : (
-        <div className="space-y-8">
+        <div className="space-y-5">
           {Object.entries(grouped).map(([date, apts]) => (
-            <section key={date} className="space-y-4">
-              <h3 className="text-xl font-black text-on-surface flex items-center gap-3 tracking-tight">
+            <section key={date} className="space-y-3">
+              <h3 className="flex items-center gap-3 text-base font-black tracking-tight text-on-surface">
                 {date}
                 <span className="h-0.5 flex-grow bg-outline-variant" />
               </h3>
 
-              <div className="grid grid-cols-1 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 {apts.map((apt) => (
                   <div
                     key={apt.id}
-                    className="glass-card rounded-[24px] p-4 flex flex-col sm:flex-row items-stretch gap-4 relative overflow-hidden"
+                    className="glass-card relative flex min-w-0 flex-col items-stretch gap-3 overflow-hidden rounded-[20px] p-3"
                   >
                     {/* Left Time Block */}
                     <div
                       className={cn(
-                        "w-full sm:w-28 rounded-[20px] flex flex-row sm:flex-col items-center justify-center p-4 sm:p-0 gap-2 border-2",
+                        "flex w-full flex-row items-center justify-center gap-2 rounded-xl border-2 p-2",
                         apt.status === "confirmed"
                           ? "bg-primary-container border-primary/20 text-primary"
                           : "bg-surface-variant border-outline-variant text-on-surface"
                       )}
                     >
-                      <span className="text-xl font-bold leading-none">{apt.time}</span>
-                      <span className="text-xs font-semibold opacity-75">{apt.duration} นาที</span>
+                      <span className="text-base font-bold leading-none">{apt.time}</span>
+                      <span className="text-[10px] font-semibold opacity-75">{apt.duration} นาที</span>
                     </div>
 
                     {/* Middle Details */}
-                    <div className="flex-grow flex flex-col justify-center text-xs space-y-1.5 font-bold text-neutral-600">
-                      <div className="flex items-center gap-3 mb-1">
-                        <h4 className="text-lg font-black text-on-surface">{apt.customerName || apt.name}</h4>
-                        <span className={cn("px-3 py-0.5 rounded-full font-bold text-[10px] tracking-wide border-2", (STATUS_CONFIG[apt.status] || STATUS_CONFIG.pending).styles)}>
+                    <div className="flex min-w-0 flex-grow flex-col justify-center space-y-1.5 text-[10px] font-bold text-neutral-600">
+                      <div className="flex min-w-0 items-center gap-1.5">
+                        <h4 className="truncate text-sm font-black text-on-surface">{apt.customerName || apt.name}</h4>
+                        <span className={cn("shrink-0 rounded-full border px-2 py-0.5 text-[9px] font-bold", (STATUS_CONFIG[apt.status] || STATUS_CONFIG.pending).styles)}>
                           {(STATUS_CONFIG[apt.status] || STATUS_CONFIG.pending).label}
                         </span>
                       </div>
                       
-                      <p className="text-on-surface-variant font-black text-sm flex items-center gap-2 mb-1">
-                        <Sparkles className="h-4 w-4 text-primary shrink-0" />
-                        {apt.service}
+                      <p className="flex min-w-0 items-center gap-1.5 font-black text-on-surface-variant">
+                        <Sparkles className="h-3.5 w-3.5 shrink-0 text-primary" />
+                        <span className="truncate">{apt.service}</span>
                       </p>
 
                       <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
@@ -299,37 +299,43 @@ export function AppointmentsPage() {
                     </div>
 
                     {/* Right Actions */}
-                    <div className="flex sm:flex-col items-center justify-center gap-2 pr-2 pl-2 sm:pl-0 pb-2 sm:pb-0 shrink-0">
+                    <div className="mt-auto flex shrink-0 items-center justify-end gap-1.5 border-t border-dashed border-outline-variant pt-2">
                       {apt.status === "pending" && (
                         <button
+                          type="button"
                           onClick={() => handleStatusUpdate(apt.id!, "confirmed")}
-                          className="w-10 h-10 rounded-xl bg-gradient-to-r from-primary to-secondary text-white border-2 border-on-surface hover:translate-x-[1px] hover:translate-y-[1px] active:scale-95 transition-all flex items-center justify-center shadow-[2px_2px_0px_0px_#1e1b4b]"
+                          className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-primary bg-primary text-white transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-95"
                           title="ยืนยันคิวจอง"
+                          aria-label={`ยืนยันคิวของ ${apt.customerName || apt.name || "ลูกค้า"}`}
                         >
                           <Check className="h-5 w-5 stroke-[2.5px]" />
                         </button>
                       )}
                       
                       <button
+                        type="button"
                         onClick={() => {
                           setSelectedApt(apt)
                           setShowEditModal(true)
                         }}
-                        className="w-10 h-10 rounded-xl bg-surface hover:bg-neutral-50 border-2 border-on-surface transition-all active:scale-95 flex items-center justify-center shadow-[2px_2px_0px_0px_#1e1b4b]"
+                        className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-primary/25 bg-white text-primary transition-colors hover:border-primary hover:bg-primary-container focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-95"
                         title="แก้ไขข้อมูล"
+                        aria-label={`แก้ไขคิวของ ${apt.customerName || apt.name || "ลูกค้า"}`}
                       >
-                        <Edit className="h-4 w-4 text-neutral-700" />
+                        <Edit className="h-4 w-4" />
                       </button>
 
                       <button
+                        type="button"
                         onClick={() => {
                           setSelectedApt(apt)
                           setShowOptionsMenu(true)
                         }}
-                        className="w-10 h-10 rounded-xl bg-surface hover:bg-neutral-50 border-2 border-on-surface transition-all active:scale-95 flex items-center justify-center shadow-[2px_2px_0px_0px_#1e1b4b]"
+                        className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-outline-variant bg-white text-on-surface transition-colors hover:border-primary hover:bg-primary-container focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-95"
                         title="ตัวเลือกการนัดหมาย"
+                        aria-label={`ตัวเลือกคิวของ ${apt.customerName || apt.name || "ลูกค้า"}`}
                       >
-                        <MoreVertical className="h-4 w-4 text-neutral-700" />
+                        <MoreVertical className="h-4 w-4" />
                       </button>
                     </div>
                   </div>

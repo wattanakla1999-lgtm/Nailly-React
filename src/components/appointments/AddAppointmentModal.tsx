@@ -1,6 +1,9 @@
 import React, { useState } from "react"
 import { User, Phone, DollarSign } from "lucide-react"
 import { Y2KModal } from "@/components/Y2KModal"
+import { DatePicker } from "@/components/forms/DatePicker"
+import { Dropdown } from "@/components/forms/Dropdown"
+import { SERVICE_OPTIONS, STAFF_OPTIONS } from "@/components/appointments/appointmentOptions"
 import type { Appointment } from "@/types"
 
 interface AddModalProps {
@@ -85,27 +88,19 @@ export function AddAppointmentModal({ isOpen, onClose, onSave }: AddModalProps) 
 
         <div className="space-y-1">
           <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">บริการ</label>
-          <select
+          <Dropdown
             value={service}
-            onChange={(e) => setService(e.target.value)}
-            className="w-full h-10 px-3 bg-surface border-2 border-outline-variant focus:border-primary focus:ring-0 rounded-xl font-bold text-xs outline-none"
-          >
-            <option value="เมนิเกียร์คลาสสิก">เมนิเกียร์คลาสสิก (฿250)</option>
-            <option value="เจลเมนิเกียร์">เจลเมนิเกียร์ (฿550)</option>
-            <option value="เฟรนช์เมนิเกียร์">เฟรนช์เมนิเกียร์ (฿450)</option>
-            <option value="เพนท์ลวดลาย">เพนท์ลวดลาย (฿150)</option>
-            <option value="ต่อเล็บ PVC/เจล">ต่อเล็บ PVC/เจล (฿900)</option>
-          </select>
+            options={SERVICE_OPTIONS}
+            onChange={setService}
+          />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1">
             <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">วันที่สะดวก</label>
-            <input
-              type="date"
+            <DatePicker
               value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="w-full h-10 px-3 bg-surface border-2 border-outline-variant focus:border-primary focus:ring-0 rounded-xl font-bold text-xs outline-none"
+              onChange={setDate}
             />
           </div>
           <div className="space-y-1">
@@ -122,14 +117,12 @@ export function AddAppointmentModal({ isOpen, onClose, onSave }: AddModalProps) 
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1">
             <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">ช่างผู้ให้บริการ</label>
-            <select
+            <Dropdown
               value={staff}
-              onChange={(e) => setStaff(e.target.value)}
-              className="w-full h-10 px-3 bg-surface border-2 border-outline-variant focus:border-primary focus:ring-0 rounded-xl font-bold text-xs outline-none"
-            >
-              <option value="พี่แนน">พี่แนน</option>
-              <option value="น้องมายด์">น้องมายด์</option>
-            </select>
+              options={STAFF_OPTIONS}
+              onChange={setStaff}
+              placement="top"
+            />
           </div>
           <div className="space-y-1">
             <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">ราคาพิเศษ (บาท)</label>

@@ -1,5 +1,6 @@
 import React from "react"
 import { Check, Star } from "lucide-react"
+import { DatePicker } from "@/components/forms/DatePicker"
 import { cn } from "@/lib/utils"
 import type { Service, Staff } from "@/types"
 
@@ -205,14 +206,13 @@ export function DateTimeStep({
 
       <div className="space-y-4">
         <div className="space-y-1">
-          <label htmlFor="booking-date" className="text-xs font-bold uppercase tracking-wider text-neutral-600">วันที่สะดวก</label>
-          <input
-            id="booking-date"
-            type="date"
+          <label className="text-xs font-bold uppercase tracking-wider text-neutral-600">วันที่สะดวก</label>
+          <DatePicker
             min={todayDateString}
             value={selectedDate}
-            onChange={(e) => onChangeDate(e.target.value)}
-            className="w-full rounded-xl border-2 border-outline-variant bg-neutral-50 px-3 py-2.5 text-sm outline-none focus:border-primary focus:ring-0 shadow-[2px_2px_0px_#c7d2fe]"
+            onChange={onChangeDate}
+            allowClear={false}
+            className="bg-neutral-50 shadow-[2px_2px_0px_#c7d2fe]"
           />
         </div>
 

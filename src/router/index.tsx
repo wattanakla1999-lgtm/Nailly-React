@@ -5,6 +5,7 @@ import { LoginPage } from "@/pages/LoginPage"
 import { DashboardPage } from "@/pages/DashboardPage"
 import { AppointmentsPage } from "@/pages/AppointmentsPage"
 import { ServicesPage } from "@/pages/ServicesPage"
+import { TechniciansPage } from "@/pages/TechniciansPage"
 import { CustomersPage } from "@/pages/CustomersPage"
 import { ReportsPage } from "@/pages/ReportsPage"
 import { SettingsPage } from "@/pages/SettingsPage"
@@ -20,6 +21,7 @@ import { AxiosInterceptor } from "@/components/AxiosInterceptor"
  *   /dashboard         → Protected: ภาพรวม
  *   /appointments      → Protected: นัดหมาย
  *   /services          → Protected: บริการ
+ *   /technicians       → Protected: ช่างทำเล็บ
  *   /customers         → Protected: ลูกค้า
  *   /reports           → Protected: รายงาน
  *   /settings          → Protected: ตั้งค่าร้าน
@@ -50,6 +52,7 @@ export const router = createBrowserRouter([
               { path: "/dashboard",     element: <DashboardPage /> },
               { path: "/appointments",  element: <AppointmentsPage /> },
               { path: "/services",      element: <ServicesPage /> },
+              { path: "/technicians",   element: <TechniciansPage /> },
               { path: "/customers",     element: <CustomersPage /> },
               { path: "/reports",       element: <ReportsPage /> },
               { path: "/settings",      element: <SettingsPage /> },
@@ -64,4 +67,3 @@ export const router = createBrowserRouter([
     ],
   },
 ])
-

@@ -1,5 +1,12 @@
 export type AppStatus = "confirmed" | "pending" | "done" | "cancelled" | "active"
 
+export interface PaginationResponse<T> {
+  data: T[]
+  page: number
+  limit: number
+  total: number
+}
+
 export interface Appointment {
   id?: string
   customerName?: string // Used in admin/appointments dashboard
@@ -43,6 +50,7 @@ export interface Customer {
   name: string
   phone: string
   email: string
+  age?: number
   totalVisits: number
   totalSpend: number
   lastVisit: string
