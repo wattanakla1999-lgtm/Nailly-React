@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { ChevronLeft } from "lucide-react"
+import { AlertCircle, ChevronLeft, RefreshCw } from "lucide-react"
 import { BookingHeader } from "@/components/booking/BookingHeader"
 import { BookingSummaryBanner } from "@/components/booking/BookingSummaryBanner"
 import { ShopClosedScreen } from "@/components/booking/ShopClosedScreen"
@@ -13,38 +13,27 @@ import {
   ContactDetailStep,
   SuccessStep,
 } from "@/components/booking/BookingSteps"
+import { fetchServices } from "@/services/serviceService"
+import { fetchTechnicians, type Technician } from "@/services/technicianService"
 import type { Service, Staff, Appointment } from "@/types"
 
-// ─── Mock Data ────────────────────────────────────────────────────────────────
+const ANY_STAFF: Staff = {
+  id: "any",
+  name: "ใครก็ได้ (สุ่มช่าง)",
+  role: "เลือกช่างที่ว่างเร็วที่สุด",
+  img: "💅",
+  rate: 0,
+}
 
-const SERVICES: Service[] = [
-  { id: "1", name: "เมนิเกียร์คลาสสิก", nameTh: "เมนิเกียร์คลาสสิก", price: 250, duration: 45, img: "https://images.unsplash.com/photo-1519014816548-bf5fe059798b?w=400", category: "manicure" },
-  { id: "2", name: "เจลเมนิเกียร์", nameTh: "เจลเมนิเกียร์", price: 550, duration: 75, img: "https://images.unsplash.com/photo-1604654894610-df63bc536371?w=400", category: "manicure" },
-  { id: "3", name: "เฟรนช์เมนิเกียร์", nameTh: "เฟรนช์เมนิเกียร์", price: 450, duration: 60, img: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=400", category: "manicure" },
-  { id: "4", name: "เพนท์ลวดลาย", nameTh: "เพนท์ลวดลาย", price: 150, duration: 30, img: "https://images.unsplash.com/photo-1607779097040-26e80aa78e66?w=400", category: "art" },
-  { id: "5", name: "เพนท์ลายพรีเมียม", nameTh: "เพนท์ลายพรีเมียม", price: 800, duration: 120, img: "https://images.unsplash.com/photo-1604654894610-df63bc536371?w=400", category: "art" },
-  { id: "6", name: "ต่อเล็บ PVC/เจล", nameTh: "ต่อเล็บ PVC/เจล", price: 900, duration: 120, img: "https://images.unsplash.com/photo-1519014816548-bf5fe059798b?w=400", category: "extension" },
-  { id: "7", name: "เพดิเกียร์คลาสสิก", nameTh: "เพดิเกียร์คลาสสิก", price: 350, duration: 60, img: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=400", category: "pedicure" },
-  { id: "8", name: "เจลเพดิเกียร์", nameTh: "เจลเพดิเกียร์", price: 480, duration: 75, img: "https://images.unsplash.com/photo-1607779097040-26e80aa78e66?w=400", category: "pedicure" },
-]
-
-const STAFFS: Staff[] = [
-  { id: "any", name: "ใครก็ได้ (สุ่มช่าง)", role: "รวดเร็วที่สุด", img: "🔮", rate: 5.0 },
-  {
-    id: "1",
-    name: "พี่แนน",
-    role: "ผู้เชี่ยวชาญการสปา",
-    img: "https://lh3.googleusercontent.com/aida-public/AB6AXuA7QAGMLUQp8lXavTAhCH_8Kwgy2BCtbAx2MVSrr8nAaIV05XpoFZhMWnBTFLEn7vs3dB83G3Ox-nAR5zNINOJTjDtsNJz-Soe-4yRkcQ9a-XPcViqPp-Fn_lm6rtUEMmtY6AZ1E_pcrRZ5CL_SY0ycnPAVGJqXp5Nj2-ONvlzv1C_d5stavDpmVcJNVQjw4y5QnNaYNWXdGx8G5tsaaH3F13SRbjiEahPIMTrOKnqZorLdi3eocl4df92SLqZwrNCXsMcFzkUWiZ4",
-    rate: 4.9,
-  },
-  {
-    id: "2",
-    name: "น้องมายด์",
-    role: "มือเพ้นท์ลายศิลปะ",
-    img: "https://lh3.googleusercontent.com/aida-public/AB6AXuBSAh0ZD8Z3OWmftpMzXdcVcHr7UR5OmAKt2Gx8Qw39lvFd2FGQ7SCniXtinNSggIsRKilR3we0ZyAQsNLo9dLYirupmuHyuDs88Uk7K6fAybWPuWD81QjkOxR-TDlPsahC0tW9xhL5P9RNlxBK6MZcl3q7gam9IZmk7bUmbXsx9-d4B7xM-iI6jo4TSZgRv7_xEwiwX-0xrz09D1I9MJHZP5ITzu2IpxOjb9Tt-raoDorUI4_6i5MonJKu_IGE-6zZIHfAyHP69Xs",
-    rate: 4.8,
-  },
-]
+function mapTechnicianToStaff(technician: Technician): Staff {
+  return {
+    id: technician.id,
+    name: technician.name,
+    role: technician.specialties.join(", ") || technician.role,
+    img: technician.profileImg || technician.name.trim().charAt(0) || "ช",
+    rate: technician.rate,
+  }
+}
 
 const TIME_SLOTS = [
   "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"
@@ -62,6 +51,10 @@ export function CustomerBookingPage() {
   const [activeTab, setActiveTab] = useState<"book" | "my-bookings">("book")
   const [step, setStep] = useState(0) // 0: Greeting, 1: Service, 2: Staff, 3: Date/Time, 4: Contact, 5: Success
   const [loading, setLoading] = useState(false)
+  const [catalogLoading, setCatalogLoading] = useState(true)
+  const [catalogOffline, setCatalogOffline] = useState(false)
+  const [services, setServices] = useState<Service[]>([])
+  const [staffs, setStaffs] = useState<Staff[]>([])
 
   // State values
   const [selectedService, setSelectedService] = useState<Service | null>(null)
@@ -79,6 +72,25 @@ export function CustomerBookingPage() {
 
   const nextStep = () => setStep((s) => s + 1)
   const prevStep = () => setStep((s) => s - 1)
+
+  const loadBookingCatalog = async () => {
+    setCatalogLoading(true)
+
+    const [serviceResult, technicianResult] = await Promise.all([
+      fetchServices({ page: 1, limit: 100 }),
+      fetchTechnicians({ page: 1, limit: 100 }),
+    ])
+
+    setServices(serviceResult.services)
+    setStaffs([
+      ANY_STAFF,
+      ...technicianResult.technicians
+        .filter((technician) => technician.status === "active")
+        .map(mapTechnicianToStaff),
+    ])
+    setCatalogOffline(serviceResult.isOffline || technicianResult.isOffline)
+    setCatalogLoading(false)
+  }
 
   // Fetch bookings on mount or when tab changes
   const loadBookings = () => {
@@ -103,6 +115,10 @@ export function CustomerBookingPage() {
     }, 600)
     return () => clearTimeout(timer)
   }, [activeTab])
+
+  useEffect(() => {
+    void loadBookingCatalog()
+  }, [])
 
   const handleBookingSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -152,7 +168,10 @@ export function CustomerBookingPage() {
 
   return (
     <div className="min-h-screen bg-mesh text-on-surface flex flex-col">
-      <LoadingPopup isOpen={loading} message="กำลังดำเนินการ..." />
+      <LoadingPopup
+        isOpen={loading || catalogLoading}
+        message={catalogLoading ? "กำลังโหลดบริการและช่าง..." : "กำลังดำเนินการ..."}
+      />
 
       {/* ── Immersive Sticky Header ── */}
       <BookingHeader activeTab={activeTab} setActiveTab={setActiveTab} setStep={setStep} />
@@ -190,13 +209,28 @@ export function CustomerBookingPage() {
                 )}
 
                 <div className="p-6 sm:p-8 flex-grow">
+                  {catalogOffline && step > 0 && step < 3 && (
+                    <div className="mb-4 flex items-center gap-3 rounded-lg border-2 border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">
+                      <AlertCircle className="h-4 w-4 shrink-0" />
+                      <span className="flex-1">โหลดข้อมูลจากเซิร์ฟเวอร์ไม่สำเร็จ กรุณาลองใหม่</span>
+                      <button
+                        type="button"
+                        onClick={() => void loadBookingCatalog()}
+                        className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-amber-300 bg-white"
+                        title="ลองโหลดข้อมูลใหม่"
+                      >
+                        <RefreshCw className="h-4 w-4" />
+                      </button>
+                    </div>
+                  )}
+
                   {/* STEP 0: GREETING SCREEN */}
                   {step === 0 && <GreetingStep onNext={nextStep} />}
 
                   {/* STEP 1: SELECT SERVICE */}
                   {step === 1 && (
                     <ServiceSelectionStep
-                      services={SERVICES}
+                      services={services}
                       selectedService={selectedService}
                       onSelectService={setSelectedService}
                       onNext={nextStep}
@@ -206,7 +240,7 @@ export function CustomerBookingPage() {
                   {/* STEP 2: SELECT STAFF */}
                   {step === 2 && (
                     <StaffSelectionStep
-                      staffs={STAFFS}
+                      staffs={staffs}
                       selectedStaff={selectedStaff}
                       onSelectStaff={setSelectedStaff}
                       onNext={nextStep}

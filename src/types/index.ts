@@ -9,6 +9,12 @@ export interface PaginationResponse<T> {
 
 export interface Appointment {
   id?: string
+  bookingNo?: string
+  userId?: string
+  serviceId?: string
+  technicianId?: string
+  startAt?: string
+  endAt?: string
   customerName?: string // Used in admin/appointments dashboard
   name?: string // Backwards compatibility / customer bookings
   phone: string
@@ -22,6 +28,7 @@ export interface Appointment {
   status: AppStatus
   iconType?: "dry_cleaning" | "brush" | "spa"
   cancelReason?: string
+  note?: string
 }
 
 export interface Service {

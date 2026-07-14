@@ -1,58 +1,24 @@
-import { useState, useEffect } from "react"
-import { Calendar, Plus, Search, Edit, Check, MoreVertical, Sparkles } from "lucide-react"
+import { useCallback, useEffect, useState } from "react"
+import { AlertCircle, Calendar, Check, ChevronLeft, ChevronRight, Edit, MoreVertical, Plus, Search, Sparkles, Trash2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Y2KModal } from "@/components/Y2KModal"
 import { AddAppointmentModal } from "@/components/appointments/AddAppointmentModal"
 import { EditAppointmentModal } from "@/components/appointments/EditAppointmentModal"
 import { LoadingPopup } from "@/components/LoadingPopup"
-import type { Appointment, AppStatus } from "@/types"
-
-// ─── Mock Data ────────────────────────────────────────────────────────────────
-
-const MOCK_APPOINTMENTS: Appointment[] = [
-  {
-    id: "1",
-    customerName: "คุณ อลิสา",
-    service: "Classic Gel Manicure",
-    staff: "พี่แนน",
-    staffImg: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=100",
-    date: "วันนี้",
-    time: "10:00",
-    duration: 60,
-    price: 550,
-    status: "confirmed",
-    phone: "081-234-5678",
-    iconType: "dry_cleaning",
-  },
-  {
-    id: "2",
-    customerName: "คุณ เมย์",
-    service: "Spa Pedicure & Nail Art",
-    staff: "น้องมายด์",
-    staffImg: "https://images.unsplash.com/photo-1519014816548-bf5fe059798b?w=100",
-    date: "วันนี้",
-    time: "13:30",
-    duration: 90,
-    price: 800,
-    status: "pending",
-    phone: "089-345-6789",
-    iconType: "brush",
-  },
-  {
-    id: "3",
-    customerName: "คุณ เจน",
-    service: "Hand Spa & Mask",
-    staff: "พี่แนน",
-    staffImg: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=100",
-    date: "พรุ่งนี้",
-    time: "11:00",
-    duration: 60,
-    price: 350,
-    status: "confirmed",
-    phone: "062-456-7890",
-    iconType: "spa",
-  },
-]
+import { getApiErrorMessage } from "@/lib/apiError"
+import {
+  createBooking,
+  deleteBooking,
+  fetchBookings,
+  updateBooking,
+  updateBookingStatus,
+  type BookingPayload,
+  type UpdateBookingPayload,
+} from "@/services/bookingService"
+import { fetchCustomers } from "@/services/customerService"
+import { fetchServices } from "@/services/serviceService"
+import { fetchTechnicians, type Technician } from "@/services/technicianService"
+import type { Appointment, AppStatus, Customer, Service } from "@/types"
 
 const FILTER_TABS: { label: string; value: AppStatus | "all" }[] = [
   { label: "ทั้งหมด", value: "all" },
@@ -72,14 +38,22 @@ const STATUS_CONFIG: Record<string, { label: string; styles: string }> = {
 
 export function AppointmentsPage() {
   const [appointments, setAppointments] = useState<Appointment[]>([])
+  const [customers, setCustomers] = useState<Customer[]>([])
+  const [services, setServices] = useState<Service[]>([])
+  const [technicians, setTechnicians] = useState<Technician[]>([])
   const [activeFilter, setActiveFilter] = useState<AppStatus | "all">("all")
   const [searchQuery, setSearchQuery] = useState("")
+  const [page, setPage] = useState(1)
+  const [limit] = useState(6)
+  const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [isOffline, setIsOffline] = useState(false)
 
   // Modal display states
   const [showAddModal, setShowAddModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [showCancelModal, setShowCancelModal] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [showOptionsMenu, setShowOptionsMenu] = useState(false)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
 
@@ -88,80 +62,98 @@ export function AppointmentsPage() {
   const [cancelReason, setCancelReason] = useState("")
   const [successMessage, setSuccessMessage] = useState("")
 
-  // Load from localStorage or merge with mock on mount
-  useEffect(() => {
+  const loadBookings = useCallback(async () => {
     setLoading(true)
-    const stored = localStorage.getItem("nailly_custom_appointments")
-    if (stored) {
-      try {
-        setAppointments(JSON.parse(stored))
-      } catch (e) {
-        console.error(e)
-      }
-    } else {
-      localStorage.setItem("nailly_custom_appointments", JSON.stringify(MOCK_APPOINTMENTS))
-      setAppointments(MOCK_APPOINTMENTS)
-    }
+    const result = await fetchBookings({ page, limit, status: activeFilter })
+    setAppointments(result.bookings)
+    setTotal(result.total)
+    setIsOffline(result.isOffline)
+    setLoading(false)
+  }, [activeFilter, limit, page])
 
-    const timer = setTimeout(() => {
-      setLoading(false)
-    }, 600)
-    return () => clearTimeout(timer)
+  useEffect(() => {
+    loadBookings()
+  }, [loadBookings])
+
+  useEffect(() => {
+    void Promise.all([
+      fetchCustomers({ page: 1, limit: 100, searchQuery: "", activeTag: "all" }),
+      fetchServices({ page: 1, limit: 100 }),
+      fetchTechnicians({ page: 1, limit: 100 }),
+    ]).then(([customerResult, serviceResult, technicianResult]) => {
+      setCustomers(customerResult.customers)
+      setServices(serviceResult.services)
+      setTechnicians(technicianResult.technicians)
+    })
   }, [])
 
-  const saveAppointmentsList = (updated: Appointment[]) => {
-    setAppointments(updated)
-    localStorage.setItem("nailly_custom_appointments", JSON.stringify(updated))
-  }
-
   // Action: Add appointment
-  const handleAddAppointment = (newApt: Appointment) => {
-    const updated = [newApt, ...appointments]
-    saveAppointmentsList(updated)
-    setShowAddModal(false)
-    setSuccessMessage("บันทึกการนัดหมายใหม่เรียบร้อยแล้ว!")
-    setShowSuccessModal(true)
+  const handleAddAppointment = async (payload: BookingPayload) => {
+    try {
+      await createBooking(payload)
+      await loadBookings()
+      setShowAddModal(false)
+      setSuccessMessage("บันทึกการนัดหมายใหม่เรียบร้อยแล้ว")
+      setShowSuccessModal(true)
+    } catch (error) {
+      setSuccessMessage(getApiErrorMessage(error, "สร้างการนัดหมายไม่สำเร็จ"))
+      setShowSuccessModal(true)
+      throw error
+    }
   }
 
   // Action: Edit appointment
-  const handleEditAppointment = (editedApt: Appointment) => {
-    const updated = appointments.map((apt) => (apt.id === editedApt.id ? editedApt : apt))
-    saveAppointmentsList(updated)
-    setShowEditModal(false)
-    setSuccessMessage("แก้ไขรายละเอียดการนัดหมายเรียบร้อยแล้ว!")
-    setShowSuccessModal(true)
+  const handleEditAppointment = async (id: string, payload: UpdateBookingPayload) => {
+    try {
+      await updateBooking(id, payload)
+      await loadBookings()
+      setShowEditModal(false)
+      setSuccessMessage("แก้ไขรายละเอียดการนัดหมายเรียบร้อยแล้ว")
+      setShowSuccessModal(true)
+    } catch (error) {
+      setSuccessMessage(getApiErrorMessage(error, "แก้ไขการนัดหมายไม่สำเร็จ"))
+      setShowSuccessModal(true)
+      throw error
+    }
   }
 
   // Action: Update status directly (e.g. confirm/done)
-  const handleStatusUpdate = (id: string, nextStatus: AppStatus) => {
-    const updated = appointments.map((apt) => 
-      apt.id === id ? { ...apt, status: nextStatus } : apt
-    )
-    saveAppointmentsList(updated)
-    
-    let msg = "อัปเดตสถานะนัดหมายเรียบร้อยแล้ว!"
-    if (nextStatus === "confirmed") msg = "ยืนยันการนัดหมายเรียบร้อยแล้ว! 🟢"
-    if (nextStatus === "done") msg = "เสร็จสิ้นบริการทำเล็บเรียบร้อยแล้ว! 🎉"
-
-    setSuccessMessage(msg)
-    setShowSuccessModal(true)
+  const handleStatusUpdate = async (id: string, nextStatus: AppStatus, reason?: string) => {
+    try {
+      await updateBookingStatus(id, nextStatus, reason)
+      await loadBookings()
+      setSuccessMessage("อัปเดตสถานะนัดหมายเรียบร้อยแล้ว")
+      setShowSuccessModal(true)
+    } catch (error) {
+      setSuccessMessage(getApiErrorMessage(error, "อัปเดตสถานะไม่สำเร็จ"))
+      setShowSuccessModal(true)
+    }
   }
 
   // Action: Cancel appointment with reason
-  const handleCancelSubmit = (e: React.FormEvent) => {
+  const handleCancelSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedApt) return
 
-    const updated = appointments.map((apt) => 
-      apt.id === selectedApt.id 
-        ? { ...apt, status: "cancelled" as AppStatus, cancelReason } 
-        : apt
-    )
-    saveAppointmentsList(updated)
+    if (!selectedApt.id) return
+    await handleStatusUpdate(selectedApt.id, "cancelled", cancelReason)
     setShowCancelModal(false)
     setCancelReason("")
-    setSuccessMessage("ยกเลิกการนัดหมาย และบันทึกสาเหตุเรียบร้อยแล้ว! 🔴")
-    setShowSuccessModal(true)
+  }
+
+  const handleDeleteBooking = async () => {
+    if (!selectedApt?.id) return
+    try {
+      await deleteBooking(selectedApt.id)
+      await loadBookings()
+      setShowDeleteModal(false)
+      setSelectedApt(null)
+      setSuccessMessage("ลบการนัดหมายเรียบร้อยแล้ว")
+      setShowSuccessModal(true)
+    } catch (error) {
+      setSuccessMessage(getApiErrorMessage(error, "ลบการนัดหมายไม่สำเร็จ"))
+      setShowSuccessModal(true)
+    }
   }
 
   // Filter logic
@@ -180,6 +172,7 @@ export function AppointmentsPage() {
     acc[apt.date] = [...(acc[apt.date] ?? []), apt]
     return acc
   }, {})
+  const totalPages = Math.ceil(total / limit) || 1
 
   return (
     <div className="space-y-4">
@@ -190,8 +183,13 @@ export function AppointmentsPage() {
         <div className="min-w-0">
           <h1 className="flex items-baseline gap-2 text-2xl font-black tracking-tight text-on-surface">
             การนัดหมาย
-            <span className="text-base font-normal text-outline">({filtered.length})</span>
+            <span className="text-base font-normal text-outline">({total})</span>
           </h1>
+          {isOffline && (
+            <p className="mt-1 flex items-center gap-1 text-[10px] font-bold text-amber-500">
+              <AlertCircle className="h-3 w-3" /> รอเปิดใช้งาน Booking API จาก backend
+            </p>
+          )}
         </div>
         <button
           onClick={() => setShowAddModal(true)}
@@ -223,7 +221,10 @@ export function AppointmentsPage() {
           return (
             <button
               key={value}
-              onClick={() => setActiveFilter(value)}
+              onClick={() => {
+                setActiveFilter(value)
+                setPage(1)
+              }}
               className={cn(
                 "whitespace-nowrap rounded-full border-2 px-4 py-2 text-[10px] font-bold transition-all",
                 isActive
@@ -343,6 +344,42 @@ export function AppointmentsPage() {
               </div>
             </section>
           ))}
+
+          <div className="flex items-center justify-between border-t-2 border-dashed border-outline-variant pt-4">
+            <span className="text-xs font-bold text-neutral-400">
+              หน้า {page} จาก {totalPages} (ทั้งหมด {total} รายการ)
+            </span>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                disabled={page <= 1}
+                onClick={() => setPage((current) => Math.max(1, current - 1))}
+                className={cn(
+                  "rounded-xl border-2 p-2 transition-all",
+                  page <= 1
+                    ? "cursor-not-allowed border-neutral-200 bg-neutral-100 text-neutral-300"
+                    : "border-on-surface bg-white text-on-surface shadow-[2px_2px_0px_#1e1b4b]"
+                )}
+                aria-label="หน้าก่อนหน้า"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                disabled={page >= totalPages}
+                onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+                className={cn(
+                  "rounded-xl border-2 p-2 transition-all",
+                  page >= totalPages
+                    ? "cursor-not-allowed border-neutral-200 bg-neutral-100 text-neutral-300"
+                    : "border-on-surface bg-white text-on-surface shadow-[2px_2px_0px_#1e1b4b]"
+                )}
+                aria-label="หน้าถัดไป"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -351,6 +388,9 @@ export function AppointmentsPage() {
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
         onSave={handleAddAppointment}
+        customers={customers}
+        services={services}
+        technicians={technicians}
       />
 
       {/* Edit Modal */}
@@ -359,6 +399,9 @@ export function AppointmentsPage() {
         onClose={() => setShowEditModal(false)}
         appointment={selectedApt}
         onSave={handleEditAppointment}
+        customers={customers}
+        services={services}
+        technicians={technicians}
       />
 
       {/* Options Menu Modal */}
@@ -405,12 +448,51 @@ export function AppointmentsPage() {
           )}
 
           <button
+            type="button"
+            onClick={() => {
+              setShowOptionsMenu(false)
+              setShowDeleteModal(true)
+            }}
+            className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-red-300 bg-red-50 py-3 text-xs font-bold text-red-600 transition-colors hover:bg-red-100"
+          >
+            <Trash2 className="h-4 w-4" /> ลบการนัดหมาย
+          </button>
+
+          <button
             onClick={() => setShowOptionsMenu(false)}
             className="w-full bg-white text-neutral-700 rounded-xl py-3 font-bold border-2 border-on-surface hover:bg-neutral-50 transition-all text-xs"
           >
             ย้อนกลับ
           </button>
         </div>
+      </Y2KModal>
+
+      <Y2KModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        title="ยืนยันการลบนัดหมาย"
+        footer={
+          <>
+            <button
+              type="button"
+              onClick={() => setShowDeleteModal(false)}
+              className="rounded-xl border-2 border-outline-variant bg-white px-4 py-2 text-xs font-bold text-neutral-600"
+            >
+              ยกเลิก
+            </button>
+            <button
+              type="button"
+              onClick={handleDeleteBooking}
+              className="rounded-xl border-2 border-red-500 bg-red-500 px-4 py-2 text-xs font-bold text-white"
+            >
+              ลบข้อมูล
+            </button>
+          </>
+        }
+      >
+        <p className="py-3 text-center text-sm font-black text-neutral-800">
+          ต้องการลบนัดหมายของ {selectedApt?.customerName || selectedApt?.name} ใช่ไหม?
+        </p>
       </Y2KModal>
 
       {/* Cancellation Reason Modal */}

@@ -60,9 +60,14 @@ export function ServiceSelectionStep({
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 overflow-y-auto pr-1 flex-grow my-2">
-        {services.map((svc) => (
+        {services.length === 0 && (
+          <div className="col-span-full flex min-h-40 items-center justify-center rounded-xl border-2 border-dashed border-outline-variant bg-neutral-50 px-4 text-center text-xs font-semibold text-neutral-500">
+            ยังไม่มีข้อมูลบริการจากระบบ
+          </div>
+        )}
+        {services.map((svc, index) => (
           <div
-            key={svc.id}
+            key={`${svc.id}-${index}`}
             onClick={() => onSelectService(svc)}
             className={cn(
               "p-3 rounded-2xl cursor-pointer transition-all flex flex-col justify-between h-48 border-3",
@@ -133,9 +138,14 @@ export function StaffSelectionStep({
       </div>
 
       <div className="space-y-3">
-        {staffs.map((stf) => (
+        {staffs.length === 0 && (
+          <div className="flex min-h-32 items-center justify-center rounded-xl border-2 border-dashed border-outline-variant bg-neutral-50 px-4 text-center text-xs font-semibold text-neutral-500">
+            ยังไม่มีข้อมูลช่างทำเล็บจากระบบ
+          </div>
+        )}
+        {staffs.map((stf, index) => (
           <div
-            key={stf.id}
+            key={`${stf.id}-${index}`}
             onClick={() => onSelectStaff(stf)}
             className={cn(
               "p-4 rounded-xl cursor-pointer transition-all flex items-center gap-4 border-3",
@@ -144,7 +154,7 @@ export function StaffSelectionStep({
                 : "bg-surface border-neutral-200 hover:border-outline hover:-translate-x-[2px] hover:-translate-y-[2px] hover:shadow-[4px_4px_0px_#FB923C]"
             )}
           >
-            {stf.img.startsWith("http") ? (
+            {stf.img.startsWith("http") || stf.img.startsWith("data:") ? (
               <img src={stf.img} alt={stf.name} className="w-12 h-12 rounded-full object-cover border-2 border-outline-variant" />
             ) : (
               <div className="w-12 h-12 rounded-full border-2 border-outline-variant flex items-center justify-center text-xl bg-neutral-100">{stf.img}</div>

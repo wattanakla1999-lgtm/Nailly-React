@@ -1,78 +1,103 @@
-import React, { useState, useEffect } from "react"
-import { User, Phone, DollarSign } from "lucide-react"
+import React, { useEffect, useMemo, useState } from "react"
+import { User, Phone } from "lucide-react"
 import { Y2KModal } from "@/components/Y2KModal"
 import { DatePicker } from "@/components/forms/DatePicker"
-import { Dropdown } from "@/components/forms/Dropdown"
-import { SERVICE_OPTIONS, STAFF_OPTIONS } from "@/components/appointments/appointmentOptions"
-import type { Appointment } from "@/types"
+import { Dropdown, type DropdownOption } from "@/components/forms/Dropdown"
+import type { UpdateBookingPayload } from "@/services/bookingService"
+import type { Technician } from "@/services/technicianService"
+import type { Appointment, Customer, Service } from "@/types"
 
 interface EditModalProps {
   isOpen: boolean
   onClose: () => void
-  onSave: (apt: Appointment) => void
+  onSave: (id: string, payload: UpdateBookingPayload) => Promise<void>
   appointment: Appointment | null
+  customers: Customer[]
+  services: Service[]
+  technicians: Technician[]
 }
 
-export function EditAppointmentModal({ isOpen, onClose, onSave, appointment }: EditModalProps) {
+export function EditAppointmentModal({ isOpen, onClose, onSave, appointment, customers, services, technicians }: EditModalProps) {
+  const [userId, setUserId] = useState("")
   const [customerName, setCustomerName] = useState("")
   const [phone, setPhone] = useState("")
-  const [service, setService] = useState("")
-  const [staff, setStaff] = useState("")
+  const [serviceId, setServiceId] = useState("")
+  const [technicianId, setTechnicianId] = useState("")
   const [date, setDate] = useState("")
   const [time, setTime] = useState("")
-  const [price, setPrice] = useState(0)
+  const [note, setNote] = useState("")
+  const [saving, setSaving] = useState(false)
+
+  const customerOptions = useMemo<DropdownOption[]>(() => customers.map((customer) => ({
+    value: customer.id,
+    label: `${customer.name} (${customer.email})`,
+  })), [customers])
+  const serviceOptions = useMemo<DropdownOption[]>(() => services.filter((service) => service.id && service.id !== "0").map((service) => ({
+    value: service.id,
+    label: `${service.name} (฿${service.price.toLocaleString()})`,
+  })), [services])
+  const technicianOptions = useMemo<DropdownOption[]>(() => [
+    { value: "", label: "ใครก็ได้" },
+    ...technicians.filter((technician) => technician.id).map((technician) => ({ value: technician.id, label: technician.name })),
+  ], [technicians])
 
   useEffect(() => {
     if (appointment) {
+      setUserId(appointment.userId || "")
       setCustomerName(appointment.customerName || appointment.name || "")
       setPhone(appointment.phone)
-      setService(appointment.service)
-      setStaff(appointment.staff)
-      
-      let formattedDate = appointment.date
-      const todayStr = new Date().toISOString().split("T")[0]
-      const tomorrow = new Date()
-      tomorrow.setDate(tomorrow.getDate() + 1)
-      const tomorrowStr = tomorrow.toISOString().split("T")[0]
+      setServiceId(appointment.serviceId || "")
+      setTechnicianId(appointment.technicianId || "")
+      setNote(appointment.note || "")
 
-      if (appointment.date === "วันนี้") formattedDate = todayStr
-      else if (appointment.date === "พรุ่งนี้") formattedDate = tomorrowStr
-
-      setDate(formattedDate)
-      setTime(appointment.time)
-      setPrice(appointment.price)
+      if (appointment.startAt) {
+        const startAt = new Date(appointment.startAt)
+        setDate(startAt.toLocaleDateString("sv-SE", { timeZone: "Asia/Bangkok" }))
+        setTime(startAt.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Bangkok" }))
+      } else {
+        setDate(appointment.date)
+        setTime(appointment.time)
+      }
     }
   }, [appointment])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!appointment) return
+    if (!appointment?.id || !userId || !serviceId || !customerName || !phone || !date || !time) return
 
-    const todayStr = new Date().toISOString().split("T")[0]
-    const tomorrow = new Date()
-    tomorrow.setDate(tomorrow.getDate() + 1)
-    const tomorrowStr = tomorrow.toISOString().split("T")[0]
-
-    let displayDate = date
-    if (date === todayStr) displayDate = "วันนี้"
-    else if (date === tomorrowStr) displayDate = "พรุ่งนี้"
-
-    onSave({
-      ...appointment,
-      customerName,
-      name: customerName,
-      phone,
-      service,
-      staff,
-      date: displayDate,
-      time,
-      price,
-    })
+    setSaving(true)
+    try {
+      await onSave(appointment.id, {
+        userId: Number(userId),
+        serviceId: Number(serviceId),
+        technicianId: technicianId ? Number(technicianId) : null,
+        startAt: `${date}T${time}:00+07:00`,
+        customerName: customerName.trim(),
+        customerPhone: phone.trim(),
+        note: note.trim() || undefined,
+      })
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
     <Y2KModal isOpen={isOpen} onClose={onClose} title="แก้ไขการนัดหมาย">
       <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-1">
+          <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">บัญชีลูกค้า *</label>
+          <Dropdown
+            value={userId}
+            options={customerOptions}
+            placeholder="เลือกลูกค้า"
+            onChange={(value) => {
+              setUserId(value)
+              const customer = customers.find((item) => item.id === value)
+              if (customer) setCustomerName(customer.name)
+            }}
+          />
+        </div>
+
         <div className="space-y-1">
           <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">ชื่อลูกค้า *</label>
           <div className="relative">
@@ -104,9 +129,10 @@ export function EditAppointmentModal({ isOpen, onClose, onSave, appointment }: E
         <div className="space-y-1">
           <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">บริการ</label>
           <Dropdown
-            value={service}
-            options={SERVICE_OPTIONS}
-            onChange={setService}
+            value={serviceId}
+            options={serviceOptions}
+            placeholder="เลือกบริการ"
+            onChange={setServiceId}
           />
         </div>
 
@@ -133,24 +159,28 @@ export function EditAppointmentModal({ isOpen, onClose, onSave, appointment }: E
           <div className="space-y-1">
             <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">ช่างผู้ให้บริการ</label>
             <Dropdown
-              value={staff}
-              options={STAFF_OPTIONS}
-              onChange={setStaff}
+              value={technicianId}
+              options={technicianOptions}
+              onChange={setTechnicianId}
               placement="top"
             />
           </div>
           <div className="space-y-1">
-            <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">ราคาพิเศษ (บาท)</label>
-            <div className="relative">
-              <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 text-outline h-4 w-4" />
-              <input
-                type="number"
-                value={price}
-                onChange={(e) => setPrice(Number(e.target.value))}
-                className="w-full h-10 pl-9 pr-3 bg-surface border-2 border-outline-variant focus:border-primary focus:ring-0 rounded-xl font-bold text-xs outline-none"
-              />
+            <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">ราคาบริการ</label>
+            <div className="flex h-10 items-center rounded-xl border-2 border-outline-variant bg-neutral-50 px-3 text-xs font-black text-primary">
+              ฿{(services.find((service) => service.id === serviceId)?.price || appointment?.price || 0).toLocaleString()}
             </div>
           </div>
+        </div>
+
+        <div className="space-y-1">
+          <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">หมายเหตุ</label>
+          <textarea
+            value={note}
+            onChange={(event) => setNote(event.target.value)}
+            rows={2}
+            className="w-full resize-none rounded-xl border-2 border-outline-variant bg-surface px-3 py-2 text-xs font-bold outline-none focus:border-primary"
+          />
         </div>
 
         <div className="pt-4 flex gap-3">
@@ -163,9 +193,10 @@ export function EditAppointmentModal({ isOpen, onClose, onSave, appointment }: E
           </button>
           <button
             type="submit"
+            disabled={saving}
             className="flex-1 h-10 bg-gradient-to-r from-primary to-secondary text-white rounded-xl font-bold border-2 border-on-surface shadow-[2px_2px_0px_0px_#1e1b4b] hover:translate-x-[1px] hover:translate-y-[1px] active:scale-95 transition-all text-xs"
           >
-            บันทึกการเปลี่ยนแปลง
+            {saving ? "กำลังบันทึก..." : "บันทึกการเปลี่ยนแปลง"}
           </button>
         </div>
       </form>

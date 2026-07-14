@@ -1,61 +1,100 @@
-import React, { useState } from "react"
-import { User, Phone, DollarSign } from "lucide-react"
+import React, { useEffect, useMemo, useState } from "react"
+import { User, Phone } from "lucide-react"
 import { Y2KModal } from "@/components/Y2KModal"
 import { DatePicker } from "@/components/forms/DatePicker"
-import { Dropdown } from "@/components/forms/Dropdown"
-import { SERVICE_OPTIONS, STAFF_OPTIONS } from "@/components/appointments/appointmentOptions"
-import type { Appointment } from "@/types"
+import { Dropdown, type DropdownOption } from "@/components/forms/Dropdown"
+import type { BookingPayload } from "@/services/bookingService"
+import type { Technician } from "@/services/technicianService"
+import type { Customer, Service } from "@/types"
 
 interface AddModalProps {
   isOpen: boolean
   onClose: () => void
-  onSave: (apt: Appointment) => void
+  onSave: (payload: BookingPayload) => Promise<void>
+  customers: Customer[]
+  services: Service[]
+  technicians: Technician[]
 }
 
-export function AddAppointmentModal({ isOpen, onClose, onSave }: AddModalProps) {
+export function AddAppointmentModal({ isOpen, onClose, onSave, customers, services, technicians }: AddModalProps) {
+  const [userId, setUserId] = useState("")
   const [customerName, setCustomerName] = useState("")
   const [phone, setPhone] = useState("")
-  const [service, setService] = useState("เจลเมนิเกียร์")
-  const [staff, setStaff] = useState("พี่แนน")
+  const [serviceId, setServiceId] = useState("")
+  const [technicianId, setTechnicianId] = useState("")
   const [date, setDate] = useState("")
   const [time, setTime] = useState("")
-  const [price, setPrice] = useState(550)
+  const [note, setNote] = useState("")
+  const [saving, setSaving] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const customerOptions = useMemo<DropdownOption[]>(() => customers.map((customer) => ({
+    value: customer.id,
+    label: `${customer.name} (${customer.email})`,
+  })), [customers])
+  const serviceOptions = useMemo<DropdownOption[]>(() => services.filter((service) => service.id && service.id !== "0").map((service) => ({
+    value: service.id,
+    label: `${service.name} (฿${service.price.toLocaleString()})`,
+  })), [services])
+  const technicianOptions = useMemo<DropdownOption[]>(() => [
+    { value: "", label: "ใครก็ได้" },
+    ...technicians.filter((technician) => technician.id).map((technician) => ({ value: technician.id, label: technician.name })),
+  ], [technicians])
+
+  useEffect(() => {
+    if (!isOpen) return
+    setUserId("")
+    setCustomerName("")
+    setPhone("")
+    setServiceId(services.find((service) => service.id && service.id !== "0")?.id || "")
+    setTechnicianId("")
+    setDate("")
+    setTime("")
+    setNote("")
+  }, [isOpen, services])
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!customerName || !phone) {
+    if (!userId || !serviceId || !customerName || !phone || !date || !time) {
       alert("กรุณากรอกข้อมูลให้ครบถ้วน")
       return
     }
 
-    const todayStr = new Date().toISOString().split("T")[0]
-    const tomorrow = new Date()
-    tomorrow.setDate(tomorrow.getDate() + 1)
-    const tomorrowStr = tomorrow.toISOString().split("T")[0]
-
-    let displayDate = date
-    if (date === todayStr) displayDate = "วันนี้"
-    else if (date === tomorrowStr) displayDate = "พรุ่งนี้"
-
-    onSave({
-      id: String(Date.now()),
-      customerName,
-      name: customerName,
-      phone,
-      service,
-      staff,
-      staffImg: staff === "พี่แนน" ? "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=100" : "https://images.unsplash.com/photo-1519014816548-bf5fe059798b?w=100",
-      date: displayDate,
-      time,
-      duration: 60,
-      price,
-      status: "pending",
-    })
+    setSaving(true)
+    try {
+      await onSave({
+        userId: Number(userId),
+        serviceId: Number(serviceId),
+        technicianId: technicianId ? Number(technicianId) : null,
+        startAt: `${date}T${time}:00+07:00`,
+        customerName: customerName.trim(),
+        customerPhone: phone.trim(),
+        note: note.trim() || undefined,
+      })
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
     <Y2KModal isOpen={isOpen} onClose={onClose} title="เพิ่มการนัดหมายใหม่">
       <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-1">
+          <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">บัญชีลูกค้า *</label>
+          <Dropdown
+            value={userId}
+            options={customerOptions}
+            placeholder="เลือกลูกค้า"
+            onChange={(value) => {
+              setUserId(value)
+              const customer = customers.find((item) => item.id === value)
+              if (customer) {
+                setCustomerName(customer.name)
+                if (customer.phone !== "-") setPhone(customer.phone)
+              }
+            }}
+          />
+        </div>
+
         <div className="space-y-1">
           <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">ชื่อลูกค้า *</label>
           <div className="relative">
@@ -89,9 +128,10 @@ export function AddAppointmentModal({ isOpen, onClose, onSave }: AddModalProps) 
         <div className="space-y-1">
           <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">บริการ</label>
           <Dropdown
-            value={service}
-            options={SERVICE_OPTIONS}
-            onChange={setService}
+            value={serviceId}
+            options={serviceOptions}
+            placeholder="เลือกบริการ"
+            onChange={setServiceId}
           />
         </div>
 
@@ -118,24 +158,28 @@ export function AddAppointmentModal({ isOpen, onClose, onSave }: AddModalProps) 
           <div className="space-y-1">
             <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">ช่างผู้ให้บริการ</label>
             <Dropdown
-              value={staff}
-              options={STAFF_OPTIONS}
-              onChange={setStaff}
+              value={technicianId}
+              options={technicianOptions}
+              onChange={setTechnicianId}
               placement="top"
             />
           </div>
           <div className="space-y-1">
-            <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">ราคาพิเศษ (บาท)</label>
-            <div className="relative">
-              <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 text-outline h-4 w-4" />
-              <input
-                type="number"
-                value={price}
-                onChange={(e) => setPrice(Number(e.target.value))}
-                className="w-full h-10 pl-9 pr-3 bg-surface border-2 border-outline-variant focus:border-primary focus:ring-0 rounded-xl font-bold text-xs outline-none"
-              />
+            <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">ราคาบริการ</label>
+            <div className="flex h-10 items-center rounded-xl border-2 border-outline-variant bg-neutral-50 px-3 text-xs font-black text-primary">
+              ฿{(services.find((service) => service.id === serviceId)?.price || 0).toLocaleString()}
             </div>
           </div>
+        </div>
+
+        <div className="space-y-1">
+          <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">หมายเหตุ</label>
+          <textarea
+            value={note}
+            onChange={(event) => setNote(event.target.value)}
+            rows={2}
+            className="w-full resize-none rounded-xl border-2 border-outline-variant bg-surface px-3 py-2 text-xs font-bold outline-none focus:border-primary"
+          />
         </div>
 
         <div className="pt-4 flex gap-3">
@@ -148,9 +192,10 @@ export function AddAppointmentModal({ isOpen, onClose, onSave }: AddModalProps) 
           </button>
           <button
             type="submit"
+            disabled={saving}
             className="flex-1 h-10 bg-gradient-to-r from-primary to-secondary text-white rounded-xl font-bold border-2 border-on-surface shadow-[2px_2px_0px_0px_#1e1b4b] hover:translate-x-[1px] hover:translate-y-[1px] active:scale-95 transition-all text-xs"
           >
-            บันทึกการนัดหมาย
+            {saving ? "กำลังบันทึก..." : "บันทึกการนัดหมาย"}
           </button>
         </div>
       </form>
