@@ -42,12 +42,6 @@ type TechnicianFormState = Omit<Technician, "id" | "specialties" | "rate" | "boo
   bio?: string
 }
 
-const STATUS_FILTERS: { label: string; value: TechnicianStatus | "all" }[] = [
-  { label: "ทั้งหมด", value: "all" },
-  { label: "พร้อมรับงาน", value: "active" },
-  { label: "พักเบรก", value: "break" },
-  { label: "ไม่อยู่ร้าน", value: "inactive" },
-]
 
 const STATUS_OPTIONS: DropdownOption<TechnicianStatus>[] = [
   { value: "active", label: "พร้อมรับงาน" },
@@ -101,7 +95,7 @@ function toTechnicianPayload(form: TechnicianFormState): TechnicianPayload {
 export function TechniciansPage() {
   const [technicians, setTechnicians] = useState<Technician[]>([])
   const [searchQuery, setSearchQuery] = useState("")
-  const [activeStatus, setActiveStatus] = useState<TechnicianStatus | "all">("all")
+  const activeStatus = "all"
   const [page, setPage] = useState(1)
   const [limit] = useState(6)
   const [total, setTotal] = useState(0)
@@ -290,25 +284,6 @@ export function TechniciansPage() {
         </div>
       </div>
 
-      <div className="flex gap-2 overflow-x-auto hide-scrollbar py-1">
-        {STATUS_FILTERS.map(({ label, value }) => {
-          const isActive = activeStatus === value
-          return (
-            <button
-              key={value}
-              onClick={() => setActiveStatus(value)}
-              className={cn(
-                "whitespace-nowrap rounded-full border-2 px-4 py-2 text-[10px] font-bold transition-all",
-                isActive
-                  ? "bg-primary text-on-primary border-primary shadow-[2px_2px_0px_0px_#1e1b4b]"
-                  : "bg-surface border-outline-variant text-on-surface hover:bg-surface-variant shadow-[2px_2px_0px_0px_#c7d2fe]"
-              )}
-            >
-              {label}
-            </button>
-          )
-        })}
-      </div>
 
       {filtered.length === 0 ? (
         <div className="y2k-card p-12 text-center text-neutral-400">

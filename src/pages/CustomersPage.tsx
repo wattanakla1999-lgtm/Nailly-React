@@ -17,12 +17,6 @@ import type { Customer } from "@/types"
 import { AlertCircle, BadgeCheck, ChevronLeft, ChevronRight, LoaderCircle, Plus, Search, Trash2, Users } from "lucide-react"
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react"
 
-const FILTER_TAGS: { label: string; value: Customer["tag"] | "all" }[] = [
-  { label: "ทั้งหมด", value: "all" },
-  { label: "VIP", value: "vip" },
-  { label: "ประจำ", value: "regular" },
-  { label: "ใหม่", value: "new" },
-]
 
 type CustomerFormState = {
   name: string
@@ -55,7 +49,7 @@ function toUserPayload(form: CustomerFormState): UserPayload {
 export function CustomersPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("")
-  const [activeTag, setActiveTag] = useState<Customer["tag"] | "all">("all")
+  const activeTag = "all"
   const [customers, setCustomers] = useState<Customer[]>([])
   const [page, setPage] = useState(1)
   const [limit] = useState(6)
@@ -213,29 +207,6 @@ export function CustomersPage() {
           onChange={(event) => setSearchQuery(event.target.value)}
           className="h-10 w-full rounded-xl border-2 border-outline-variant bg-surface pl-10 pr-3 text-xs font-medium outline-none shadow-[2px_2px_0px_0px_#c7d2fe] transition-all placeholder:text-outline-variant focus:border-primary focus:ring-0"
         />
-      </div>
-
-      <div className="flex gap-2 overflow-x-auto hide-scrollbar py-1">
-        {FILTER_TAGS.map(({ label, value }) => {
-          const isActive = activeTag === value
-          return (
-            <button
-              key={value}
-              onClick={() => {
-                setActiveTag(value)
-                setPage(1)
-              }}
-              className={cn(
-                "whitespace-nowrap rounded-full border-2 px-4 py-2 text-[10px] font-bold transition-all",
-                isActive
-                  ? "bg-primary text-on-primary border-primary shadow-[2px_2px_0px_0px_#1e1b4b]"
-                  : "bg-surface border-outline-variant text-on-surface hover:bg-surface-variant shadow-[2px_2px_0px_0px_#c7d2fe]"
-              )}
-            >
-              {label}
-            </button>
-          )
-        })}
       </div>
 
       {customers.length === 0 ? (

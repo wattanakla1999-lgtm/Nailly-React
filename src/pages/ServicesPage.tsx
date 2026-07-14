@@ -16,13 +16,6 @@ import type { Service } from "@/types"
 import { AlertCircle, BadgeCheck, ChevronLeft, ChevronRight, Plus, Scissors, Search, Trash2 } from "lucide-react"
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react"
 
-const CATEGORIES = [
-  { value: "all", label: "ทั้งหมด" },
-  { value: "manicure", label: "เมนิเกียร์" },
-  { value: "pedicure", label: "เพดิเกียร์" },
-  { value: "art", label: "เพนท์ลวดลาย" },
-  { value: "extension", label: "ต่อเล็บ" },
-]
 
 type ServiceFormState = {
   serviceName: string
@@ -63,7 +56,7 @@ function toServicePayload(form: ServiceFormState): ServicePayload {
 
 export function ServicesPage() {
   const [services, setServices] = useState<Service[]>([])
-  const [activeCategory, setActiveCategory] = useState("all")
+  const activeCategory = "all"
   const [searchQuery, setSearchQuery] = useState("")
   const [page, setPage] = useState(1)
   const [limit] = useState(6)
@@ -241,25 +234,6 @@ export function ServicesPage() {
         />
       </div>
 
-      <div className="flex gap-2 overflow-x-auto hide-scrollbar py-1">
-        {CATEGORIES.map(({ value, label }) => {
-          const isActive = activeCategory === value
-          return (
-            <button
-              key={value}
-              onClick={() => setActiveCategory(value)}
-              className={cn(
-                "whitespace-nowrap rounded-full border-2 px-4 py-2 text-[10px] font-bold transition-all",
-                isActive
-                  ? "bg-primary text-on-primary border-primary shadow-[2px_2px_0px_0px_#1e1b4b]"
-                  : "bg-surface border-outline-variant text-on-surface hover:bg-surface-variant shadow-[2px_2px_0px_0px_#c7d2fe]"
-              )}
-            >
-              {label}
-            </button>
-          )
-        })}
-      </div>
 
       {filtered.length === 0 ? (
         <div className="y2k-card p-12 text-center text-neutral-400">
