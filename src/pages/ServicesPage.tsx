@@ -14,7 +14,8 @@ import {
 } from "@/services/serviceService"
 import type { Service } from "@/types"
 import { AlertCircle, BadgeCheck, ChevronLeft, ChevronRight, Plus, Scissors, Search, Trash2 } from "lucide-react"
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react"
+import { useEffect, useMemo, useState, type FormEvent } from "react"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 
 
 type ServiceFormState = {
@@ -55,14 +56,11 @@ function toServicePayload(form: ServiceFormState): ServicePayload {
 }
 
 export function ServicesPage() {
-  const [services, setServices] = useState<Service[]>([])
+  const queryClient = useQueryClient()
   const activeCategory = "all"
   const [searchQuery, setSearchQuery] = useState("")
   const [page, setPage] = useState(1)
   const [limit] = useState(6)
-  const [total, setTotal] = useState(0)
-  const [loading, setLoading] = useState(true)
-  const [isOffline, setIsOffline] = useState(false)
   const [showFormModal, setShowFormModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
@@ -70,19 +68,17 @@ export function ServicesPage() {
   const [form, setForm] = useState<ServiceFormState>(emptyForm)
   const [successMessage, setSuccessMessage] = useState("")
 
-  const loadServices = useCallback(async () => {
-    setLoading(true)
-    const result = await fetchServices({ page, limit })
+  const {
+    data,
+    isLoading: loading,
+  } = useQuery({
+    queryKey: ["services", page],
+    queryFn: () => fetchServices({ page, limit }),
+  })
 
-    setServices(result.services)
-    setTotal(result.total)
-    setIsOffline(result.isOffline)
-    setLoading(false)
-  }, [page, limit])
-
-  useEffect(() => {
-    loadServices()
-  }, [loadServices])
+  const services = data?.services ?? []
+  const total = data?.total ?? 0
+  const isOffline = data?.isOffline ?? false
 
   useEffect(() => {
     setPage(1)
@@ -150,7 +146,7 @@ export function ServicesPage() {
         await createService(payload)
       }
 
-      await loadServices()
+      await queryClient.invalidateQueries({ queryKey: ["services"] })
       setShowFormModal(false)
       setSuccessMessage(selectedService ? "แก้ไขบริการเรียบร้อยแล้ว" : "เพิ่มบริการใหม่เรียบร้อยแล้ว")
       setShowSuccessModal(true)
@@ -169,7 +165,7 @@ export function ServicesPage() {
         throw new Error("ไม่สามารถลบบริการได้ เพราะ backend ไม่ได้ส่ง serviceId ที่ถูกต้อง")
       }
       await deleteService(selectedService.id)
-      await loadServices()
+      await queryClient.invalidateQueries({ queryKey: ["services"] })
       setShowDeleteModal(false)
       setSuccessMessage(`ลบบริการ ${selectedService.name} เรียบร้อยแล้ว`)
       setSelectedService(null)

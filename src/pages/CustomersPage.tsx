@@ -15,7 +15,8 @@ import {
 } from "@/services/customerService"
 import type { Customer } from "@/types"
 import { AlertCircle, BadgeCheck, ChevronLeft, ChevronRight, LoaderCircle, Plus, Search, Trash2, Users } from "lucide-react"
-import { useCallback, useEffect, useRef, useState, type FormEvent } from "react"
+import { useEffect, useState, type FormEvent } from "react"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 
 
 type CustomerFormState = {
@@ -47,41 +48,31 @@ function toUserPayload(form: CustomerFormState): UserPayload {
 }
 
 export function CustomersPage() {
+  const queryClient = useQueryClient()
   const [searchQuery, setSearchQuery] = useState("")
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("")
   const activeTag = "all"
-  const [customers, setCustomers] = useState<Customer[]>([])
   const [page, setPage] = useState(1)
   const [limit] = useState(6)
-  const [total, setTotal] = useState(0)
-  const [loading, setLoading] = useState(true)
-  const [isFetching, setIsFetching] = useState(false)
-  const [isOffline, setIsOffline] = useState(false)
   const [showFormModal, setShowFormModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null)
   const [form, setForm] = useState<CustomerFormState>(emptyForm)
   const [successMessage, setSuccessMessage] = useState("")
-  const requestIdRef = useRef(0)
 
-  const loadCustomers = useCallback(async () => {
-    const requestId = ++requestIdRef.current
-    setIsFetching(true)
-    const result = await fetchCustomers({ page, limit, searchQuery: debouncedSearchQuery, activeTag })
+  const {
+    data,
+    isLoading: loading,
+    isFetching,
+  } = useQuery({
+    queryKey: ["customers", page, debouncedSearchQuery],
+    queryFn: () => fetchCustomers({ page, limit, searchQuery: debouncedSearchQuery, activeTag }),
+  })
 
-    if (requestId !== requestIdRef.current) return
-
-    setCustomers(result.customers)
-    setTotal(result.total)
-    setIsOffline(result.isOffline)
-    setLoading(false)
-    setIsFetching(false)
-  }, [activeTag, debouncedSearchQuery, limit, page])
-
-  useEffect(() => {
-    loadCustomers()
-  }, [loadCustomers])
+  const customers = data?.customers ?? []
+  const total = data?.total ?? 0
+  const isOffline = data?.isOffline ?? false
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -131,7 +122,7 @@ export function CustomersPage() {
         await createUser(payload)
       }
 
-      await loadCustomers()
+      await queryClient.invalidateQueries({ queryKey: ["customers"] })
       setShowFormModal(false)
       setSuccessMessage(selectedCustomer ? "แก้ไขข้อมูลลูกค้าเรียบร้อยแล้ว" : "เพิ่มลูกค้าใหม่เรียบร้อยแล้ว")
       setShowSuccessModal(true)
@@ -147,7 +138,7 @@ export function CustomersPage() {
 
     try {
       await deleteUser(selectedCustomer.id)
-      await loadCustomers()
+      await queryClient.invalidateQueries({ queryKey: ["customers"] })
       setShowDeleteModal(false)
       setSuccessMessage(`ลบข้อมูล ${selectedCustomer.name} เรียบร้อยแล้ว`)
       setSelectedCustomer(null)

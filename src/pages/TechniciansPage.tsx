@@ -30,7 +30,8 @@ import {
   Trash2,
   UserRoundCog,
 } from "lucide-react"
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react"
+import { useEffect, useMemo, useState, type FormEvent } from "react"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 
 type TechnicianFormState = Omit<Technician, "id" | "specialties" | "rate" | "bookingsToday"> & {
   id?: string
@@ -93,14 +94,11 @@ function toTechnicianPayload(form: TechnicianFormState): TechnicianPayload {
 }
 
 export function TechniciansPage() {
-  const [technicians, setTechnicians] = useState<Technician[]>([])
+  const queryClient = useQueryClient()
   const [searchQuery, setSearchQuery] = useState("")
   const activeStatus = "all"
   const [page, setPage] = useState(1)
   const [limit] = useState(6)
-  const [total, setTotal] = useState(0)
-  const [loading, setLoading] = useState(true)
-  const [isOffline, setIsOffline] = useState(false)
   const [showFormModal, setShowFormModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
@@ -108,19 +106,17 @@ export function TechniciansPage() {
   const [form, setForm] = useState<TechnicianFormState>(emptyForm)
   const [successMessage, setSuccessMessage] = useState("")
 
-  const loadTechnicians = useCallback(async () => {
-    setLoading(true)
-    const result = await fetchTechnicians({ page, limit })
+  const {
+    data,
+    isLoading: loading,
+  } = useQuery({
+    queryKey: ["technicians", page],
+    queryFn: () => fetchTechnicians({ page, limit }),
+  })
 
-    setTechnicians(result.technicians)
-    setTotal(result.total)
-    setIsOffline(result.isOffline)
-    setTimeout(() => setLoading(false), 350)
-  }, [page, limit])
-
-  useEffect(() => {
-    loadTechnicians()
-  }, [loadTechnicians])
+  const technicians = data?.technicians ?? []
+  const total = data?.total ?? 0
+  const isOffline = data?.isOffline ?? false
 
   useEffect(() => {
     setPage(1)
@@ -193,7 +189,7 @@ export function TechniciansPage() {
         await createTechnician(payload)
       }
 
-      await loadTechnicians()
+      await queryClient.invalidateQueries({ queryKey: ["technicians"] })
       setShowFormModal(false)
       setSuccessMessage(selectedTechnician ? "แก้ไขข้อมูลช่างทำเล็บเรียบร้อยแล้ว" : "เพิ่มช่างทำเล็บใหม่เรียบร้อยแล้ว")
       setShowSuccessModal(true)
@@ -212,7 +208,7 @@ export function TechniciansPage() {
         throw new Error("ไม่สามารถลบช่างทำเล็บได้ เพราะ backend ไม่ได้ส่ง technicianId")
       }
       await deleteTechnician(selectedTechnician.id)
-      await loadTechnicians()
+      await queryClient.invalidateQueries({ queryKey: ["technicians"] })
       setShowDeleteModal(false)
       setSuccessMessage(`ลบข้อมูล ${selectedTechnician.nickname} เรียบร้อยแล้ว`)
       setSelectedTechnician(null)
