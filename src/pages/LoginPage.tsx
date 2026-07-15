@@ -142,6 +142,7 @@ export function LoginPage() {
                         setError("")
                       }}
                       placeholder="กรอกชื่อผู้ใช้"
+                      maxLength={50}
                       className={cn(
                         "w-full rounded-xl border bg-neutral-50/50 py-3 pl-10 pr-4 text-sm text-neutral-900 placeholder:text-neutral-400 outline-none transition-all",
                         "focus:border-primary focus:ring-0 focus:bg-white shadow-[2px_2px_0px_0px_#c7d2fe]",
@@ -175,6 +176,7 @@ export function LoginPage() {
                         setError("")
                       }}
                       placeholder="กรอกรหัสผ่าน"
+                      maxLength={100}
                       className={cn(
                         "w-full rounded-xl border bg-neutral-50/50 py-3 pl-10 pr-11 text-sm text-neutral-900 placeholder:text-neutral-400 outline-none transition-all",
                         "focus:border-primary focus:ring-0 focus:bg-white shadow-[2px_2px_0px_0px_#c7d2fe]",

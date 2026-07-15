@@ -32,7 +32,8 @@ export function MyBookingsScreen({
             type="text"
             placeholder="ใส่เบอร์โทรศัพท์เพื่อค้นหาคิวจอง..."
             value={searchPhone}
-            onChange={(e) => onChangeSearchPhone(e.target.value)}
+            onChange={(e) => onChangeSearchPhone(e.target.value.replace(/[^0-9]/g, ""))}
+            maxLength={20}
             className="w-full h-12 pl-12 pr-4 bg-surface border-2 border-outline-variant focus:border-primary focus:ring-0 rounded-xl font-bold text-sm outline-none placeholder:text-outline-variant shadow-[2px_2px_0px_0px_#c7d2fe]"
           />
         </div>

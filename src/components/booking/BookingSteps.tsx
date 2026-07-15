@@ -310,6 +310,7 @@ export function ContactDetailStep({
             placeholder="กรุณากรอกชื่อจริง/ชื่อเล่น"
             value={customerName}
             onChange={(e) => onChangeName(e.target.value)}
+            maxLength={100}
             className="w-full rounded-xl border-2 border-outline-variant bg-neutral-50 px-3 py-2.5 text-sm outline-none focus:border-primary focus:ring-0 shadow-[2px_2px_0px_#c7d2fe]"
           />
         </div>
@@ -320,9 +321,10 @@ export function ContactDetailStep({
             id="book-cust-phone"
             type="tel"
             required
-            placeholder="กรอกเบอร์มือถือ เช่น 089-1234567"
+            placeholder="กรอกเบอร์มือถือ เช่น 0891234567"
             value={customerPhone}
-            onChange={(e) => onChangePhone(e.target.value)}
+            onChange={(e) => onChangePhone(e.target.value.replace(/[^0-9]/g, ""))}
+            maxLength={20}
             className="w-full rounded-xl border-2 border-outline-variant bg-neutral-50 px-3 py-2.5 text-sm outline-none focus:border-primary focus:ring-0 shadow-[2px_2px_0px_#c7d2fe]"
           />
         </div>
@@ -335,6 +337,7 @@ export function ContactDetailStep({
             placeholder="ต้องการสีโทนไหนเป็นพิเศษแจ้งช่างได้เลยค่ะ"
             value={customerNote}
             onChange={(e) => onChangeNote(e.target.value)}
+            maxLength={500}
             className="w-full rounded-xl border-2 border-outline-variant bg-neutral-50 px-3 py-2.5 text-sm outline-none focus:border-primary focus:ring-0 shadow-[2px_2px_0px_#c7d2fe]"
           />
         </div>

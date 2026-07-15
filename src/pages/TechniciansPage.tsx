@@ -271,6 +271,7 @@ export function TechniciansPage() {
             placeholder="ค้นหาชื่อ, ชื่อเล่น, เบอร์โทร หรือความถนัด..."
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
+            maxLength={100}
             className="h-10 w-full rounded-xl border-2 border-outline-variant bg-surface pl-10 pr-3 text-xs font-medium outline-none shadow-[2px_2px_0px_0px_#c7d2fe] transition-all placeholder:text-outline-variant focus:border-primary focus:ring-0"
           />
         </div>
@@ -424,6 +425,7 @@ export function TechniciansPage() {
                 required
                 value={form.name}
                 onChange={(event) => updateForm("name", event.target.value)}
+                maxLength={100}
                 className="w-full h-11 px-4 bg-surface border-2 border-outline-variant focus:border-primary rounded-xl font-bold text-xs outline-none"
               />
             </label>
@@ -433,6 +435,7 @@ export function TechniciansPage() {
                 required
                 value={form.nickname}
                 onChange={(event) => updateForm("nickname", event.target.value)}
+                maxLength={100}
                 className="w-full h-11 px-4 bg-surface border-2 border-outline-variant focus:border-primary rounded-xl font-bold text-xs outline-none"
               />
             </label>
@@ -441,7 +444,8 @@ export function TechniciansPage() {
               <input
                 required
                 value={form.phone}
-                onChange={(event) => updateForm("phone", event.target.value)}
+                onChange={(event) => updateForm("phone", event.target.value.replace(/[^0-9]/g, ""))}
+                maxLength={20}
                 className="w-full h-11 px-4 bg-surface border-2 border-outline-variant focus:border-primary rounded-xl font-bold text-xs outline-none"
               />
             </label>
@@ -471,6 +475,7 @@ export function TechniciansPage() {
                 value={form.specialties}
                 onChange={(event) => updateForm("specialties", event.target.value)}
                 placeholder="เช่น Gel Manicure, Nail Art, Extension"
+                maxLength={100}
                 className="w-full h-11 px-4 bg-surface border-2 border-outline-variant focus:border-primary rounded-xl font-bold text-xs outline-none"
               />
             </label>
@@ -480,6 +485,7 @@ export function TechniciansPage() {
                 value={form.profileImg ?? ""}
                 onChange={(event) => updateForm("profileImg", event.target.value)}
                 placeholder="https://..."
+                maxLength={255}
                 className="w-full h-11 px-4 bg-surface border-2 border-outline-variant focus:border-primary rounded-xl font-bold text-xs outline-none"
               />
             </label>
@@ -489,6 +495,7 @@ export function TechniciansPage() {
                 value={form.bio ?? ""}
                 onChange={(event) => updateForm("bio", event.target.value)}
                 rows={3}
+                maxLength={500}
                 className="w-full resize-none px-4 py-3 bg-surface border-2 border-outline-variant focus:border-primary rounded-xl font-bold text-xs outline-none"
               />
             </label>

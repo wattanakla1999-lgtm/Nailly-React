@@ -145,6 +145,7 @@ export function SettingsPage() {
                   value={shopPhone}
                   onChange={(e) => setShopPhone(e.target.value)}
                   placeholder="เช่น 02-123-4567"
+                  maxLength={20}
                   className="w-full h-11 px-4 bg-surface border-2 border-outline-variant focus:border-primary focus:ring-0 rounded-xl font-bold text-xs outline-none"
                 />
               </div>

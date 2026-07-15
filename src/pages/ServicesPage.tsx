@@ -226,6 +226,7 @@ export function ServicesPage() {
           placeholder="ค้นหาบริการ..."
           value={searchQuery}
           onChange={(event) => setSearchQuery(event.target.value)}
+          maxLength={100}
           className="h-10 w-full rounded-xl border-2 border-outline-variant bg-surface pl-10 pr-3 text-xs font-medium outline-none shadow-[2px_2px_0px_0px_#c7d2fe] transition-all placeholder:text-outline-variant focus:border-primary focus:ring-0"
         />
       </div>
@@ -321,6 +322,7 @@ export function ServicesPage() {
                 required
                 value={form.serviceName}
                 onChange={(event) => updateForm("serviceName", event.target.value)}
+                maxLength={100}
                 className="w-full h-11 px-4 bg-surface border-2 border-outline-variant focus:border-primary rounded-xl font-bold text-xs outline-none"
               />
             </label>
@@ -352,6 +354,7 @@ export function ServicesPage() {
                 value={form.img}
                 onChange={(event) => updateForm("img", event.target.value)}
                 placeholder="https://..."
+                maxLength={255}
                 className="w-full h-11 px-4 bg-surface border-2 border-outline-variant focus:border-primary rounded-xl font-bold text-xs outline-none"
               />
             </label>
@@ -361,6 +364,7 @@ export function ServicesPage() {
                 value={form.description}
                 onChange={(event) => updateForm("description", event.target.value)}
                 rows={3}
+                maxLength={500}
                 className="w-full resize-none px-4 py-3 bg-surface border-2 border-outline-variant focus:border-primary rounded-xl font-bold text-xs outline-none"
               />
             </label>

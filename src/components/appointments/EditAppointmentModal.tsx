@@ -194,6 +194,7 @@ export function EditAppointmentModal({ isOpen, onClose, onSave, appointment, cus
               required
               value={customerName}
               onChange={(e) => setCustomerName(e.target.value)}
+              maxLength={100}
               className="w-full h-10 pl-9 pr-3 bg-surface border-2 border-outline-variant focus:border-primary focus:ring-0 rounded-xl font-bold text-xs outline-none"
             />
           </div>
@@ -207,7 +208,8 @@ export function EditAppointmentModal({ isOpen, onClose, onSave, appointment, cus
               type="text"
               required
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, ""))}
+              maxLength={20}
               className="w-full h-10 pl-9 pr-3 bg-surface border-2 border-outline-variant focus:border-primary focus:ring-0 rounded-xl font-bold text-xs outline-none"
             />
           </div>
@@ -289,6 +291,7 @@ export function EditAppointmentModal({ isOpen, onClose, onSave, appointment, cus
             value={note}
             onChange={(event) => setNote(event.target.value)}
             rows={2}
+            maxLength={500}
             className="w-full resize-none rounded-xl border-2 border-outline-variant bg-surface px-3 py-2 text-xs font-bold outline-none focus:border-primary"
           />
         </div>

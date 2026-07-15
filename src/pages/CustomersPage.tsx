@@ -196,6 +196,7 @@ export function CustomersPage() {
           placeholder="ค้นหาชื่อ, เบอร์โทร หรืออีเมล..."
           value={searchQuery}
           onChange={(event) => setSearchQuery(event.target.value)}
+          maxLength={100}
           className="h-10 w-full rounded-xl border-2 border-outline-variant bg-surface pl-10 pr-3 text-xs font-medium outline-none shadow-[2px_2px_0px_0px_#c7d2fe] transition-all placeholder:text-outline-variant focus:border-primary focus:ring-0"
         />
       </div>
@@ -293,6 +294,7 @@ export function CustomersPage() {
               required
               value={form.name}
               onChange={(event) => updateForm("name", event.target.value)}
+              maxLength={100}
               className="h-11 w-full rounded-xl border-2 border-outline-variant bg-surface px-4 text-xs font-bold outline-none focus:border-primary"
             />
           </label>
@@ -303,6 +305,7 @@ export function CustomersPage() {
               type="email"
               value={form.email}
               onChange={(event) => updateForm("email", event.target.value)}
+              maxLength={150}
               className="h-11 w-full rounded-xl border-2 border-outline-variant bg-surface px-4 text-xs font-bold outline-none focus:border-primary"
             />
           </label>

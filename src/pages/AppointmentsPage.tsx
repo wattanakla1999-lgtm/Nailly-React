@@ -233,6 +233,7 @@ export function AppointmentsPage() {
             placeholder="ค้นหาชื่อลูกค้า, บริการ..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            maxLength={100}
             className="h-10 w-full rounded-xl border-2 border-outline-variant bg-surface pl-10 pr-3 text-xs font-bold outline-none shadow-[2px_2px_0px_0px_#c7d2fe] transition-all placeholder:text-outline-variant focus:border-primary focus:ring-0"
           />
         </div>
@@ -543,6 +544,7 @@ export function AppointmentsPage() {
               placeholder="เช่น ช่างแนนป่วยกะทันหัน หรือ ร้านปิดปรับปรุงระบบค่ะ"
               value={cancelReason}
               onChange={(e) => setCancelReason(e.target.value)}
+              maxLength={500}
               className="w-full rounded-xl border-2 border-outline-variant bg-neutral-50 px-3 py-2 text-xs outline-none focus:border-primary focus:ring-0"
             />
           </div>
