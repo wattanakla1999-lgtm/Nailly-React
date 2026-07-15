@@ -314,6 +314,7 @@ export function CustomersPage() {
             <input
               type="number"
               min="0"
+              max="120"
               value={form.age}
               onChange={(event) => updateForm("age", event.target.value)}
               className="h-11 w-full rounded-xl border-2 border-outline-variant bg-surface px-4 text-xs font-bold outline-none focus:border-primary"

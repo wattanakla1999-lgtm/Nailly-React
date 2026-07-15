@@ -454,6 +454,7 @@ export function TechniciansPage() {
               <input
                 required
                 min="0"
+                max="100"
                 type="number"
                 value={form.experienceYears ?? 0}
                 onChange={(event) => updateForm("experienceYears", Number(event.target.value))}

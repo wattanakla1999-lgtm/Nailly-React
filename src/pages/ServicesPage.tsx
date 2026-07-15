@@ -326,11 +326,12 @@ export function ServicesPage() {
                 className="w-full h-11 px-4 bg-surface border-2 border-outline-variant focus:border-primary rounded-xl font-bold text-xs outline-none"
               />
             </label>
-            <label className="space-y-1">
+             <label className="space-y-1">
               <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">ราคา</span>
               <input
                 required
                 min="0"
+                max="100000"
                 type="number"
                 value={form.servicePrice}
                 onChange={(event) => updateForm("servicePrice", event.target.value)}
@@ -342,6 +343,7 @@ export function ServicesPage() {
               <input
                 required
                 min="0"
+                max="1440"
                 type="number"
                 value={form.duration}
                 onChange={(event) => updateForm("duration", event.target.value)}
