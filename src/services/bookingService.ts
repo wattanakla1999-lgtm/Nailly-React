@@ -26,6 +26,7 @@ export interface BookingFilters {
   technicianId?: number
   dateFrom?: string
   dateTo?: string
+  phone?: string
 }
 
 interface BookingApiRecord {
@@ -133,6 +134,7 @@ export async function fetchBookings(filters: BookingFilters): Promise<FetchBooki
         technicianId: filters.technicianId,
         dateFrom: filters.dateFrom,
         dateTo: filters.dateTo,
+        phone: filters.phone,
       },
     })
 
@@ -180,4 +182,24 @@ export async function updateBookingStatus(id: string, status: AppStatus, cancelR
 
 export async function deleteBooking(id: string) {
   await api.delete(`/bookings/${id}`)
+}
+
+export async function fetchBusySlots(
+  date: string,
+  technicianId?: number | null,
+  serviceId?: number | null,
+): Promise<string[]> {
+  try {
+    const response = await api.get<{ busySlots: string[] }>("/bookings/busy-slots", {
+      params: {
+        date,
+        technicianId: technicianId || undefined,
+        serviceId: serviceId || undefined,
+      },
+    })
+    return response.data.busySlots || []
+  } catch (error) {
+    console.warn("Unable to fetch busy slots from backend, using empty list.", error)
+    return []
+  }
 }

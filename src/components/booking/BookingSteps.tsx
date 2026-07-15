@@ -196,6 +196,7 @@ interface DateTimeStepProps {
   onChangeTime: (time: string) => void
   todayDateString: string
   onNext: () => void
+  busySlots?: string[]
 }
 
 export function DateTimeStep({
@@ -206,6 +207,7 @@ export function DateTimeStep({
   onChangeTime,
   todayDateString,
   onNext,
+  busySlots = [],
 }: DateTimeStepProps) {
   return (
     <div className="space-y-6">
@@ -229,21 +231,27 @@ export function DateTimeStep({
         <div className="space-y-1.5">
           <label className="text-xs font-bold uppercase tracking-wider text-neutral-600">ช่วงเวลา</label>
           <div className="grid grid-cols-3 gap-2">
-            {timeSlots.map((time) => (
-              <button
-                key={time}
-                type="button"
-                onClick={() => onChangeTime(time)}
-                className={cn(
-                  "py-2.5 rounded-lg font-bold text-xs transition-all border-3",
-                  selectedTime === time
-                    ? "bg-white text-on-surface border-primary shadow-[4px_4px_0px_#FB923C] -translate-x-[2px] -translate-y-[2px]"
-                    : "bg-surface border-neutral-200 text-neutral-700 hover:border-outline hover:-translate-x-[2px] hover:-translate-y-[2px] hover:shadow-[4px_4px_0px_#FB923C]"
-                )}
-              >
-                {time}
-              </button>
-            ))}
+            {timeSlots.map((time) => {
+              const isBusy = busySlots.includes(time)
+              return (
+                <button
+                  key={time}
+                  type="button"
+                  disabled={isBusy}
+                  onClick={() => onChangeTime(time)}
+                  className={cn(
+                    "py-2.5 rounded-lg font-bold text-xs transition-all border-3",
+                    isBusy
+                      ? "bg-neutral-100 border-neutral-200 text-neutral-400 cursor-not-allowed shadow-none"
+                      : selectedTime === time
+                      ? "bg-white text-on-surface border-primary shadow-[4px_4px_0px_#FB923C] -translate-x-[2px] -translate-y-[2px]"
+                      : "bg-surface border-neutral-200 text-neutral-700 hover:border-outline hover:-translate-x-[2px] hover:-translate-y-[2px] hover:shadow-[4px_4px_0px_#FB923C]"
+                  )}
+                >
+                  {time}
+                </button>
+              )
+            })}
           </div>
         </div>
       </div>

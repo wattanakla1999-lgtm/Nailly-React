@@ -5,6 +5,8 @@ import { BookingSummaryBanner } from "@/components/booking/BookingSummaryBanner"
 import { ShopClosedScreen } from "@/components/booking/ShopClosedScreen"
 import { MyBookingsScreen } from "@/components/booking/MyBookingsScreen"
 import { LoadingPopup } from "@/components/LoadingPopup"
+import { getApiErrorMessage } from "@/lib/apiError"
+import { Y2KModal } from "@/components/Y2KModal"
 import {
   GreetingStep,
   ServiceSelectionStep,
@@ -15,6 +17,7 @@ import {
 } from "@/components/booking/BookingSteps"
 import { fetchServices } from "@/services/serviceService"
 import { fetchTechnicians, type Technician } from "@/services/technicianService"
+import { createBooking, fetchBookings, fetchBusySlots } from "@/services/bookingService"
 import type { Service, Staff, Appointment } from "@/types"
 
 const ANY_STAFF: Staff = {
@@ -47,6 +50,8 @@ const STATUS_MAP = {
   cancelled: { label: "ยกเลิกแล้ว", class: "bg-red-100 text-red-600 border-red-300" },
 }
 
+const todayDateString = new Date().toISOString().split("T")[0]
+
 export function CustomerBookingPage() {
   const [activeTab, setActiveTab] = useState<"book" | "my-bookings">("book")
   const [step, setStep] = useState(0) // 0: Greeting, 1: Service, 2: Staff, 3: Date/Time, 4: Contact, 5: Success
@@ -59,7 +64,7 @@ export function CustomerBookingPage() {
   // State values
   const [selectedService, setSelectedService] = useState<Service | null>(null)
   const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null)
-  const [selectedDate, setSelectedDate] = useState("")
+  const [selectedDate, setSelectedDate] = useState(todayDateString)
   const [selectedTime, setSelectedTime] = useState("")
   const [customerName, setCustomerName] = useState("")
   const [customerPhone, setCustomerPhone] = useState("")
@@ -69,6 +74,9 @@ export function CustomerBookingPage() {
   const [myBookings, setMyBookings] = useState<Appointment[]>([])
   const [searchPhone, setSearchPhone] = useState("")
   const [isShopOpen, setIsShopOpen] = useState(true)
+  const [showErrorModal, setShowErrorModal] = useState(false)
+  const [errorMessage, setErrorMessage] = useState("")
+  const [busySlots, setBusySlots] = useState<string[]>([])
 
   const nextStep = () => setStep((s) => s + 1)
   const prevStep = () => setStep((s) => s - 1)
@@ -93,12 +101,21 @@ export function CustomerBookingPage() {
   }
 
   // Fetch bookings on mount or when tab changes
-  const loadBookings = () => {
+  const loadBookings = async (phoneToSearch?: string) => {
+    const queryPhone = phoneToSearch || searchPhone
+    if (!queryPhone) {
+      setMyBookings([])
+      return
+    }
+
     try {
-      const stored = localStorage.getItem("nailly_custom_appointments")
-      if (stored) {
-        setMyBookings(JSON.parse(stored))
-      }
+      const result = await fetchBookings({
+        page: 1,
+        limit: 100,
+        phone: queryPhone,
+        status: "all",
+      })
+      setMyBookings(result.bookings)
     } catch (e) {
       console.error(e)
     }
@@ -106,7 +123,6 @@ export function CustomerBookingPage() {
 
   useEffect(() => {
     setLoading(true)
-    loadBookings()
     const status = localStorage.getItem("nailly_shop_status") || "open"
     setIsShopOpen(status === "open")
 
@@ -117,10 +133,31 @@ export function CustomerBookingPage() {
   }, [activeTab])
 
   useEffect(() => {
+    if (activeTab === "my-bookings" && searchPhone) {
+      const timer = setTimeout(() => {
+        void loadBookings(searchPhone)
+      }, 300)
+      return () => clearTimeout(timer)
+    }
+  }, [searchPhone, activeTab])
+
+  useEffect(() => {
     void loadBookingCatalog()
   }, [])
 
-  const handleBookingSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (selectedDate) {
+      const techId = selectedStaff && selectedStaff.id !== "any" ? Number(selectedStaff.id) : null
+      const serviceId = selectedService ? Number(selectedService.id) : null
+      void fetchBusySlots(selectedDate, techId, serviceId).then((slots) => {
+        setBusySlots(slots)
+      })
+    } else {
+      setBusySlots([])
+    }
+  }, [selectedDate, selectedStaff, selectedService])
+
+  const handleBookingSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!customerName || !customerPhone) {
       alert("กรุณากรอกข้อมูลให้ครบถ้วน")
@@ -129,31 +166,32 @@ export function CustomerBookingPage() {
 
     setLoading(true)
 
-    const newApt: Appointment = {
-      name: customerName,
-      customerName: customerName,
-      phone: customerPhone,
-      service: selectedService?.nameTh || selectedService?.name || "สปาเล็บ",
-      price: selectedService?.price || 0,
-      staff: selectedStaff?.name || "ใครก็ได้",
-      date: selectedDate,
-      time: selectedTime,
-      status: "pending",
-    }
+    try {
+      const startAt = `${selectedDate}T${selectedTime}:00+07:00` // assume local Thai time offset
 
-    const currentListStr = localStorage.getItem("nailly_custom_appointments") || "[]"
-    const currentList = JSON.parse(currentListStr)
-    const updatedList = [...currentList, newApt]
-    localStorage.setItem("nailly_custom_appointments", JSON.stringify(updatedList))
+      await createBooking({
+        userId: 1, // Mock user ID 1 for now (until LINE Login is integrated)
+        serviceId: Number(selectedService?.id) || 0,
+        technicianId: selectedStaff && selectedStaff.id !== "any" ? Number(selectedStaff.id) : null,
+        startAt,
+        customerName: customerName.trim(),
+        customerPhone: customerPhone.trim(),
+        note: customerNote.trim() || undefined,
+      })
 
-    // Set phone number to filter history easily later
-    setSearchPhone(customerPhone)
-    loadBookings()
+      // Set phone number to filter history easily later
+      setSearchPhone(customerPhone)
+      await loadBookings(customerPhone)
 
-    setTimeout(() => {
       setLoading(false)
       nextStep()
-    }, 600)
+    } catch (error) {
+      console.error("Unable to submit booking.", error)
+      const errorMsg = getApiErrorMessage(error, "เกิดข้อผิดพลาดในการส่งข้อมูลการจองคิว กรุณาลองใหม่อีกครั้ง")
+      setErrorMessage(errorMsg)
+      setShowErrorModal(true)
+      setLoading(false)
+    }
   }
 
   // Filter bookings based on phone input
@@ -163,7 +201,6 @@ export function CustomerBookingPage() {
     return b.phone.replace(/[^0-9]/g, "").includes(searchPhone.replace(/[^0-9]/g, ""))
   })
 
-  const todayDateString = new Date().toISOString().split("T")[0]
   const shopPhone = localStorage.getItem("nailly_shop_phone")
 
   return (
@@ -257,6 +294,7 @@ export function CustomerBookingPage() {
                       onChangeTime={setSelectedTime}
                       todayDateString={todayDateString}
                       onNext={nextStep}
+                      busySlots={busySlots}
                     />
                   )}
 
@@ -313,6 +351,26 @@ export function CustomerBookingPage() {
           />
         )}
       </main>
+
+      {/* ── ERROR MODAL ── */}
+      <Y2KModal
+        isOpen={showErrorModal}
+        onClose={() => setShowErrorModal(false)}
+        title="เกิดข้อผิดพลาด"
+        footer={
+          <button
+            onClick={() => setShowErrorModal(false)}
+            className="h-10 rounded-xl border-2 border-on-surface bg-primary text-white font-bold px-6 hover:bg-primary/95 active:scale-95 transition-all text-xs shadow-[2px_2px_0px_#1e1b4b]"
+          >
+            ตกลง
+          </button>
+        }
+      >
+        <div className="flex flex-col items-center justify-center text-center p-2">
+          <AlertCircle className="h-12 w-12 text-red-500 mb-3 animate-bounce" />
+          <p className="text-sm font-bold text-neutral-800 leading-relaxed">{errorMessage}</p>
+        </div>
+      </Y2KModal>
     </div>
   )
 }
