@@ -4,13 +4,14 @@ import type { Appointment, AppStatus, PaginationResponse } from "@/types"
 export type BookingApiStatus = "pending" | "confirmed" | "in_service" | "completed" | "cancelled" | "no_show"
 
 export interface BookingPayload {
-  userId: number
+  userId: number | null
   serviceId: number
   technicianId?: number | null
   startAt: string
   customerName: string
   customerPhone: string
   note?: string
+  status?: BookingApiStatus
 }
 
 export type UpdateBookingPayload = Partial<BookingPayload> & {

@@ -6,7 +6,9 @@ import { Dropdown, type DropdownOption } from "@/components/forms/Dropdown"
 import { fetchBusySlots, type UpdateBookingPayload } from "@/services/bookingService"
 import type { Technician } from "@/services/technicianService"
 import type { Appointment, Customer, Service } from "@/types"
-import { cn } from "@/lib/utils"
+import { cn, generateTimeSlots } from "@/lib/utils"
+
+
 
 interface EditModalProps {
   isOpen: boolean
@@ -31,6 +33,13 @@ export function EditAppointmentModal({ isOpen, onClose, onSave, appointment, cus
   const [busySlots, setBusySlots] = useState<string[]>([])
   const [originalDate, setOriginalDate] = useState("")
   const [originalTime, setOriginalTime] = useState("")
+  const [customerType, setCustomerType] = useState<"existing" | "new">("existing")
+
+  const timeSlots = useMemo(() => {
+    const open = localStorage.getItem("nailly_shop_open_time") || "10:00"
+    const close = localStorage.getItem("nailly_shop_close_time") || "20:00"
+    return generateTimeSlots(open, close)
+  }, [isOpen])
 
   const customerOptions = useMemo<DropdownOption[]>(() => customers.map((customer) => ({
     value: customer.id,
@@ -48,6 +57,7 @@ export function EditAppointmentModal({ isOpen, onClose, onSave, appointment, cus
   useEffect(() => {
     if (appointment) {
       setUserId(appointment.userId || "")
+      setCustomerType(appointment.userId ? "existing" : "new")
       setCustomerName(appointment.customerName || appointment.name || "")
       setPhone(appointment.phone)
       setServiceId(appointment.serviceId || "")
@@ -87,7 +97,11 @@ export function EditAppointmentModal({ isOpen, onClose, onSave, appointment, cus
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!appointment?.id || !userId || !serviceId || !customerName || !phone || !date || !time) return
+    if (customerType === "existing" && !userId) {
+      alert("กรุณาเลือกบัญชีลูกค้า")
+      return
+    }
+    if (!appointment?.id || !serviceId || !customerName || !phone || !date || !time) return
 
     const isOverlapping = busySlots.includes(time) && !(date === originalDate && time === originalTime)
     if (isOverlapping) {
@@ -98,7 +112,7 @@ export function EditAppointmentModal({ isOpen, onClose, onSave, appointment, cus
     setSaving(true)
     try {
       await onSave(appointment.id, {
-        userId: Number(userId),
+        userId: customerType === "existing" ? Number(userId) : null,
         serviceId: Number(serviceId),
         technicianId: technicianId ? Number(technicianId) : null,
         startAt: `${date}T${time}:00+07:00`,
@@ -114,19 +128,62 @@ export function EditAppointmentModal({ isOpen, onClose, onSave, appointment, cus
   return (
     <Y2KModal isOpen={isOpen} onClose={onClose} title="แก้ไขการนัดหมาย">
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-1">
-          <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">บัญชีลูกค้า *</label>
-          <Dropdown
-            value={userId}
-            options={customerOptions}
-            placeholder="เลือกลูกค้า"
-            onChange={(value) => {
-              setUserId(value)
-              const customer = customers.find((item) => item.id === value)
-              if (customer) setCustomerName(customer.name)
+        {/* Customer Type Selector */}
+        <div className="grid grid-cols-2 gap-2 p-1 bg-surface-variant/30 rounded-xl border-2 border-outline-variant">
+          <button
+            type="button"
+            onClick={() => {
+              setCustomerType("existing")
+              setUserId("")
+              setCustomerName("")
+              setPhone("")
             }}
-          />
+            className={cn(
+              "py-1.5 rounded-lg text-xs font-bold transition-all text-center",
+              customerType === "existing"
+                ? "bg-primary text-white border-2 border-on-surface shadow-[1px_1px_0px_#1e1b4b]"
+                : "text-neutral-600 hover:text-neutral-800"
+            )}
+          >
+            ลูกค้าเก่า (มีบัญชีแล้ว)
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setCustomerType("new")
+              setUserId("")
+              setCustomerName("")
+              setPhone("")
+            }}
+            className={cn(
+              "py-1.5 rounded-lg text-xs font-bold transition-all text-center",
+              customerType === "new"
+                ? "bg-primary text-white border-2 border-on-surface shadow-[1px_1px_0px_#1e1b4b]"
+                : "text-neutral-600 hover:text-neutral-800"
+            )}
+          >
+            ลูกค้าใหม่ (ยังไม่มีบัญชี)
+          </button>
         </div>
+
+        {customerType === "existing" && (
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">บัญชีลูกค้า *</label>
+            <Dropdown
+              value={userId}
+              options={customerOptions}
+              placeholder="เลือกลูกค้า"
+              onChange={(value) => {
+                setUserId(value)
+                const customer = customers.find((item) => item.id === value)
+                if (customer) {
+                  setCustomerName(customer.name)
+                  if (customer.phone !== "-") setPhone(customer.phone)
+                }
+              }}
+            />
+          </div>
+        )}
 
         <div className="space-y-1">
           <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">ชื่อลูกค้า *</label>
@@ -168,39 +225,11 @@ export function EditAppointmentModal({ isOpen, onClose, onSave, appointment, cus
 
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1">
-            <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">วันที่นัด</label>
-            <DatePicker
-              value={date}
-              onChange={setDate}
-            />
-          </div>
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">เวลา</label>
-            <input
-              type="time"
-              value={time}
-              onChange={(e) => setTime(e.target.value)}
-              className={cn(
-                "w-full h-10 px-3 bg-surface border-2 focus:ring-0 rounded-xl font-bold text-xs outline-none",
-                busySlots.includes(time) && !(date === originalDate && time === originalTime)
-                  ? "border-red-400 text-red-500 focus:border-red-500"
-                  : "border-outline-variant focus:border-primary"
-              )}
-            />
-            {busySlots.includes(time) && !(date === originalDate && time === originalTime) && (
-              <p className="text-[9px] text-red-500 font-bold mt-0.5">⚠️ คิวเวลานี้ทับกันอยู่</p>
-            )}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1">
             <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">ช่างผู้ให้บริการ</label>
             <Dropdown
               value={technicianId}
               options={technicianOptions}
               onChange={setTechnicianId}
-              placement="top"
             />
           </div>
           <div className="space-y-1">
@@ -208,6 +237,49 @@ export function EditAppointmentModal({ isOpen, onClose, onSave, appointment, cus
             <div className="flex h-10 items-center rounded-xl border-2 border-outline-variant bg-neutral-50 px-3 text-xs font-black text-primary">
               ฿{(services.find((service) => service.id === serviceId)?.price || appointment?.price || 0).toLocaleString()}
             </div>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">วันที่นัด *</label>
+            <DatePicker
+              value={date}
+              onChange={setDate}
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">ช่วงเวลาบริการ *</label>
+            {date ? (
+              <div className="grid grid-cols-3 gap-2">
+                {timeSlots.map((slot) => {
+                  const isOwnTime = slot === originalTime && date === originalDate
+                  const isBusy = busySlots.includes(slot) && !isOwnTime
+                  const isSelected = time === slot
+                  return (
+                    <button
+                      key={slot}
+                      type="button"
+                      disabled={isBusy}
+                      onClick={() => setTime(slot)}
+                      className={cn(
+                        "py-2 rounded-lg font-bold text-[10px] transition-all border-2 text-center",
+                        isBusy
+                          ? "bg-neutral-100 border-neutral-200 text-neutral-400 cursor-not-allowed"
+                          : isSelected
+                          ? "bg-primary text-white border-primary shadow-[2px_2px_0px_#1e1b4b] -translate-x-[1px] -translate-y-[1px]"
+                          : "bg-surface border-neutral-200 text-neutral-700 hover:border-outline hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[2px_2px_0px_#1e1b4b]"
+                      )}
+                    >
+                      {slot} น.
+                    </button>
+                  )
+                })}
+              </div>
+            ) : (
+              <p className="text-[10px] text-neutral-400 font-bold italic py-1">กรุณาเลือกวันที่ก่อนเพื่อตรวจสอบเวลาว่าง</p>
+            )}
           </div>
         </div>
 

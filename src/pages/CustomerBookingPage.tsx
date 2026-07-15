@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { AlertCircle, ChevronLeft, RefreshCw } from "lucide-react"
 import { BookingHeader } from "@/components/booking/BookingHeader"
 import { BookingSummaryBanner } from "@/components/booking/BookingSummaryBanner"
@@ -7,6 +7,7 @@ import { MyBookingsScreen } from "@/components/booking/MyBookingsScreen"
 import { LoadingPopup } from "@/components/LoadingPopup"
 import { getApiErrorMessage } from "@/lib/apiError"
 import { Y2KModal } from "@/components/Y2KModal"
+import { generateTimeSlots } from "@/lib/utils"
 import {
   GreetingStep,
   ServiceSelectionStep,
@@ -38,9 +39,7 @@ function mapTechnicianToStaff(technician: Technician): Staff {
   }
 }
 
-const TIME_SLOTS = [
-  "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"
-]
+
 
 const STATUS_MAP = {
   pending: { label: "รอยืนยัน", class: "bg-secondary-container text-on-secondary-container border-secondary" },
@@ -77,6 +76,12 @@ export function CustomerBookingPage() {
   const [showErrorModal, setShowErrorModal] = useState(false)
   const [errorMessage, setErrorMessage] = useState("")
   const [busySlots, setBusySlots] = useState<string[]>([])
+
+  const timeSlots = useMemo(() => {
+    const open = localStorage.getItem("nailly_shop_open_time") || "10:00"
+    const close = localStorage.getItem("nailly_shop_close_time") || "20:00"
+    return generateTimeSlots(open, close)
+  }, [activeTab])
 
   const nextStep = () => setStep((s) => s + 1)
   const prevStep = () => setStep((s) => s - 1)
@@ -287,7 +292,7 @@ export function CustomerBookingPage() {
                   {/* STEP 3: DATE & TIME SELECT */}
                   {step === 3 && (
                     <DateTimeStep
-                      timeSlots={TIME_SLOTS}
+                      timeSlots={timeSlots}
                       selectedDate={selectedDate}
                       selectedTime={selectedTime}
                       onChangeDate={setSelectedDate}

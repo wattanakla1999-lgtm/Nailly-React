@@ -65,11 +65,27 @@ export function AppointmentsPage() {
   const loadBookings = useCallback(async () => {
     setLoading(true)
     const result = await fetchBookings({ page, limit, status: activeFilter })
-    setAppointments(result.bookings)
+    
+    // Resolve technician name from technicians list if missing
+    const resolvedBookings = result.bookings.map((apt) => {
+      if (apt.technicianId && (apt.staff === "ใครก็ได้" || !apt.staff)) {
+        const tech = technicians.find((t) => t.id === apt.technicianId)
+        if (tech) {
+          return {
+            ...apt,
+            staff: tech.name,
+            staffImg: tech.profileImg,
+          }
+        }
+      }
+      return apt
+    })
+
+    setAppointments(resolvedBookings)
     setTotal(result.total)
     setIsOffline(result.isOffline)
     setLoading(false)
-  }, [activeFilter, limit, page])
+  }, [activeFilter, limit, page, technicians])
 
   useEffect(() => {
     loadBookings()
@@ -90,7 +106,15 @@ export function AppointmentsPage() {
   // Action: Add appointment
   const handleAddAppointment = async (payload: BookingPayload) => {
     try {
-      await createBooking(payload)
+      const newBooking = await createBooking(payload)
+      // Force confirm status for admin-created appointments if database defaults new records to pending
+      if (newBooking.id) {
+        try {
+          await updateBookingStatus(newBooking.id, "confirmed")
+        } catch (statusErr) {
+          console.warn("Unable to auto-confirm new booking", statusErr)
+        }
+      }
       await loadBookings()
       setShowAddModal(false)
       setSuccessMessage("บันทึกการนัดหมายใหม่เรียบร้อยแล้ว")
