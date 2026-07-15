@@ -1,12 +1,20 @@
 import { createContext, useState, useEffect, useCallback, type ReactNode } from "react"
-
-// ─── Types ───────────────────────────────────────────────────────────────────
+import api from "@/lib/api"
+import { getApiErrorMessage } from "@/lib/apiError"
 
 export interface User {
+  id: number
   username: string
   name: string
-  role: "admin" | "staff"
+  role: "admin"
   avatar?: string
+}
+
+interface AuthSession {
+  token: string
+  tokenType: "Bearer"
+  expiresAt: string
+  user: User
 }
 
 export interface AuthContextValue {
@@ -17,36 +25,9 @@ export interface AuthContextValue {
   logout: () => void
 }
 
-// ─── Mock Credentials ────────────────────────────────────────────────────────
-
-const MOCK_USERS: Array<{ username: string; password: string; user: User }> = [
-  {
-    username: "admin",
-    password: "nailly2025",
-    user: {
-      username: "admin",
-      name: "ผู้ดูแลระบบ",
-      role: "admin",
-    },
-  },
-  {
-    username: "staff",
-    password: "staff123",
-    user: {
-      username: "staff",
-      name: "พนักงาน",
-      role: "staff",
-    },
-  },
-]
-
 const STORAGE_KEY = "nailly_auth"
 
-// ─── Context ─────────────────────────────────────────────────────────────────
-
 export const AuthContext = createContext<AuthContextValue | null>(null)
-
-// ─── Provider ────────────────────────────────────────────────────────────────
 
 interface AuthProviderProps {
   children: ReactNode
@@ -56,13 +37,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  // Restore session from localStorage on mount
   useEffect(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY)
       if (stored) {
-        const parsed = JSON.parse(stored) as User
-        setUser(parsed)
+        const session = JSON.parse(stored) as AuthSession
+        const isExpired = new Date(session.expiresAt).getTime() <= Date.now()
+        if (!session.token || !session.user || isExpired) {
+          localStorage.removeItem(STORAGE_KEY)
+        } else {
+          setUser(session.user)
+        }
       }
     } catch {
       localStorage.removeItem(STORAGE_KEY)
@@ -73,20 +58,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const login = useCallback(
     async (username: string, password: string): Promise<{ success: boolean; error?: string }> => {
-      // Simulate network delay for realism
-      await new Promise((resolve) => setTimeout(resolve, 800))
-
-      const match = MOCK_USERS.find(
-        (u) => u.username === username.trim() && u.password === password
-      )
-
-      if (!match) {
-        return { success: false, error: "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง" }
+      try {
+        const response = await api.post<AuthSession>("/auth/login", {
+          username: username.trim(),
+          password,
+        })
+        const session = response.data
+        setUser(session.user)
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(session))
+        return { success: true }
+      } catch (error) {
+        return {
+          success: false,
+          error: getApiErrorMessage(error, "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง"),
+        }
       }
-
-      setUser(match.user)
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(match.user))
-      return { success: true }
     },
     []
   )

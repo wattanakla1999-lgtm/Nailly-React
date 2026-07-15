@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import {
   Calendar,
@@ -16,30 +15,17 @@ import { cn } from "@/lib/utils"
 import { StatCard } from "@/components/StatCard"
 import { AppointmentRow } from "@/components/AppointmentRow"
 import { LoadingPopup } from "@/components/LoadingPopup"
-import type { Appointment } from "@/types"
+import { useQuery } from "@tanstack/react-query"
+import { fetchDashboardData } from "@/services/dashboardService"
 
 export function DashboardPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
-  const [customAppointments, setCustomAppointments] = useState<Appointment[]>([])
-  const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false)
-    }, 600)
-
-    try {
-      const stored = localStorage.getItem("nailly_custom_appointments")
-      if (stored) {
-        setCustomAppointments(JSON.parse(stored))
-      }
-    } catch (e) {
-      console.error(e)
-    }
-
-    return () => clearTimeout(timer)
-  }, [])
+  const { data, isLoading } = useQuery({
+    queryKey: ["dashboardData"],
+    queryFn: fetchDashboardData,
+  })
 
   const todayStr = new Date().toLocaleDateString("th-TH", {
     weekday: "long",
@@ -48,9 +34,31 @@ export function DashboardPage() {
     day: "numeric",
   })
 
+  if (isLoading) {
+    return <LoadingPopup isOpen={true} message="กำลังโหลดข้อมูลแดชบอร์ด..." />
+  }
+
+  const stats = data || {
+    todayAppointments: 0,
+    todayAppointmentsChange: 0,
+    totalCustomers: 0,
+    totalCustomersChange: "",
+    activeServicesCount: 0,
+    todayRevenue: 0,
+    appointments: [],
+    popularServices: [],
+    isOffline: false,
+  }
+
+  const isOffline = !!stats.isOffline
+
   return (
     <div className="flex flex-col gap-8">
-      <LoadingPopup isOpen={loading} message="กำลังโหลดข้อมูลแดชบอร์ด..." />
+      {isOffline && (
+        <div className="rounded-xl border-2 border-amber-200 bg-amber-50 px-4 py-2.5 text-xs font-semibold text-amber-800">
+          ⚠️ กำลังแสดงข้อมูลแบบออฟไลน์ (เชื่อมต่อเซิร์ฟเวอร์ไม่ได้)
+        </div>
+      )}
 
       {/* Welcome Header */}
       <section className="flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -72,11 +80,13 @@ export function DashboardPage() {
         <StatCard
           icon={<Calendar className="h-6 w-6" />}
           label="นัดหมายวันนี้"
-          value="12"
+          value={String(stats.todayAppointments)}
           sub={
-            <span className="font-bold text-xs text-secondary bg-secondary-container px-2.5 py-0.5 rounded-lg border-2 border-secondary shadow-[2px_2px_0px_#FB923C] flex items-center gap-0.5">
-              <ArrowUp className="h-3 w-3 stroke-[3px]" /> 3
-            </span>
+            stats.todayAppointmentsChange > 0 ? (
+              <span className="font-bold text-xs text-secondary bg-secondary-container px-2.5 py-0.5 rounded-lg border-2 border-secondary shadow-[2px_2px_0px_#FB923C] flex items-center gap-0.5">
+                <ArrowUp className="h-3 w-3 stroke-[3px]" /> {stats.todayAppointmentsChange}
+              </span>
+            ) : undefined
           }
           color="bg-primary-container border-primary text-primary"
           to="/appointments"
@@ -84,11 +94,13 @@ export function DashboardPage() {
         <StatCard
           icon={<Users className="h-6 w-6" />}
           label="ลูกค้าทั้งหมด"
-          value="248"
+          value={String(stats.totalCustomers)}
           sub={
-            <span className="font-bold text-xs text-tertiary bg-tertiary-container px-2.5 py-0.5 rounded-lg border-2 border-tertiary shadow-[2px_2px_0px_#a78bfa] flex items-center gap-0.5">
-              <ArrowUp className="h-3 w-3 stroke-[3px]" /> 5 ใหม่
-            </span>
+            stats.totalCustomersChange ? (
+              <span className="font-bold text-xs text-tertiary bg-tertiary-container px-2.5 py-0.5 rounded-lg border-2 border-tertiary shadow-[2px_2px_0px_#a78bfa] flex items-center gap-0.5">
+                <ArrowUp className="h-3 w-3 stroke-[3px]" /> {stats.totalCustomersChange}
+              </span>
+            ) : undefined
           }
           color="bg-secondary-container border-secondary text-secondary"
           to="/customers"
@@ -96,7 +108,7 @@ export function DashboardPage() {
         <StatCard
           icon={<Scissors className="h-6 w-6" />}
           label="บริการที่ให้"
-          value="8"
+          value={String(stats.activeServicesCount)}
           sub={
             <span className="font-bold text-xs text-on-surface-variant bg-surface-variant px-2.5 py-0.5 rounded-lg border-2 border-outline-variant">
               ประเภท
@@ -108,7 +120,7 @@ export function DashboardPage() {
         <StatCard
           icon={<TrendingUp className="h-6 w-6" />}
           label="รายได้วันนี้"
-          value="฿3,200"
+          value={`฿${stats.todayRevenue.toLocaleString()}`}
           color="bg-gradient-to-br from-[#818CF8] to-[#FB923C] border-on-surface text-white"
           to="/reports"
         />
@@ -128,47 +140,23 @@ export function DashboardPage() {
             </button>
           </div>
           <div className="flex flex-col p-4 gap-4 bg-white">
-            {customAppointments.map((apt, idx) => {
-              const displayName = apt.name || apt.customerName || "ไม่ระบุชื่อ";
-              return (
+            {stats.appointments.length === 0 ? (
+              <div className="py-8 text-center text-xs font-bold text-neutral-400">
+                ไม่มีรายการนัดหมายวันนี้ค่ะ
+              </div>
+            ) : (
+              stats.appointments.map((apt) => (
                 <AppointmentRow
-                  key={`custom-${idx}`}
-                  name={`คุณ ${displayName}`}
-                  service={apt.service || "บริการทำเล็บ"}
-                  time={apt.time || "00:00"}
-                  status={apt.status || "pending"}
-                  avatarText={displayName.charAt(0)}
+                  key={apt.id}
+                  name={apt.name}
+                  service={apt.service}
+                  time={apt.time}
+                  status={apt.status}
+                  avatarText={apt.avatarText || apt.name.trim().charAt(0)}
+                  imgUrl={apt.imgUrl}
                 />
-              )
-            })}
-            <AppointmentRow
-              name="คุณพิม พิมประภา"
-              service="ต่อเล็บเจล + เพ้นท์ลาย"
-              time="10:00"
-              status="active"
-              imgUrl="https://lh3.googleusercontent.com/aida-public/AB6AXuDhNpXZyacwG5q2S5HlwjiZ5Mr-kBxeh9rY_oUy58fKAWSFtkjevptHv8BZrlthTr6wg7GGomNMCZQTfThLURSNaBXGhfZZJROnvTIP2ntFy4C6Ki45ZQIbBf5QOswezsekhCTgNbSzCTFdRG1OnKpYLlrtZcQPsW-r7RFD-Jb4mLUjd9-04tEk0pivo5BZMJwYqbM23DDZBKa2jmAEYE83YpYioDWqJWG6a7OeZqZA_E-gtCgxHg4d0Brc9NeXivDDo1v127RIdQ0"
-            />
-            <AppointmentRow
-              name="คุณอรัญญา"
-              service="สปามือและเท้า + ทาสีเจล"
-              time="13:30"
-              status="pending"
-              imgUrl="https://lh3.googleusercontent.com/aida-public/AB6AXuBQAdLpKVRx3Ilt3FqqiqbjG-RzEzl7HlLcLasPv7TGtAuv9KATFEynIMpQOWpsDXxY5iS7ARBNMX_U0_5cqobN45jvBS4DC27DlwJUYafl1YgAGu73S0Zqc5lDQTcwVeVVyBH50jdAw1pTiUBXclHUTfuLyEf7Ktyrnb2Jnn8ANLWxTI9yjk6VjbcxeL5DSBK9SxuaTXQu_FP3C3UmMRcQ0-R8IWvtm3dCN6sxTlVkrtfpFfjY8uqISUTI0Zkbs85UMJuLYgy_ncU"
-            />
-            <AppointmentRow
-              name="คุณเจนนิเฟอร์"
-              service="ถอดเล็บเจล"
-              time="15:00"
-              status="confirmed"
-              avatarText="จ"
-            />
-            <AppointmentRow
-              name="คุณลูกศร"
-              service="ทาสีเจลมือ (สีพื้น)"
-              time="16:30"
-              status="confirmed"
-              imgUrl="https://lh3.googleusercontent.com/aida-public/AB6AXuDaeplGl0eg0XDgBHNcLjjTKmTkE9MaJ7D28RnajVemY6abga4I7eDODXu_WoAVgNZinJJL5pH4yn-bFtRPSZTta3I2jnRerFLE-jQBxz7jJ5fXBBjX42MKq3TrXFXuI2ZA52SUoMHEm5ABUNCo_tiKnx8I4YuOEiyi6CqCr-u4O7FV_AuXjxjYdw_2u7-gBNJtUoMhVMYPV-8fWmCC46lgSqjThCweVOAXBLmP0R4_RE9sBy4PBuldTabvod1hemYU3w2bGCARW_Y"
-            />
+              ))
+            )}
           </div>
         </div>
 
@@ -179,12 +167,7 @@ export function DashboardPage() {
             <Sparkles className="h-5 w-5 text-primary" />
           </div>
           <div className="flex flex-col gap-6">
-            {[
-              { name: "ทาสีเจลมือ", rate: 4.9, count: 124, percent: 45, color: "from-[#818CF8] to-[#FB923C]" },
-              { name: "สปามือ-เท้า", rate: 4.8, count: 89, percent: 30, color: "bg-[#FB923C]" },
-              { name: "ต่อเล็บ PVC", rate: 4.7, count: 56, percent: 15, color: "bg-[#a78bfa]" },
-              { name: "เพ้นท์ลายศิลปะ", rate: 4.9, count: 42, percent: 10, color: "bg-[#818CF8]" },
-            ].map((svc) => (
+            {stats.popularServices.map((svc) => (
               <div key={svc.name}>
                 <div className="flex justify-between items-end mb-2">
                   <div>

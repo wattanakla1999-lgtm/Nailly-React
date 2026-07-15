@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react"
 import { Save, ToggleLeft, ToggleRight, Clock, AlertTriangle } from "lucide-react"
 import { Y2KModal } from "@/components/Y2KModal"
+import { fetchSettings, updateSettings } from "@/services/settingService"
+import { cn } from "@/lib/utils"
 
 export function SettingsPage() {
   const [shopStatus, setShopStatus] = useState<"open" | "closed">("open")
@@ -8,26 +10,48 @@ export function SettingsPage() {
   const [closeTime, setCloseTime] = useState("20:00")
   const [shopPhone, setShopPhone] = useState("02-123-4567")
   const [showModal, setShowModal] = useState(false)
+  const [isPageLoading, setIsPageLoading] = useState(true)
+  const [isSaving, setIsSaving] = useState(false)
+  const [isOffline, setIsOffline] = useState(false)
 
   useEffect(() => {
-    const status = localStorage.getItem("nailly_shop_status") || "open"
-    const open = localStorage.getItem("nailly_shop_open_time") || "10:00"
-    const close = localStorage.getItem("nailly_shop_close_time") || "20:00"
-    const phone = localStorage.getItem("nailly_shop_phone") || "02-123-4567"
-
-    setShopStatus(status as "open" | "closed")
-    setOpenTime(open)
-    setCloseTime(close)
-    setShopPhone(phone)
+    void fetchSettings().then((data) => {
+      setShopStatus(data.shopStatus)
+      setOpenTime(data.openTime)
+      setCloseTime(data.closeTime)
+      setShopPhone(data.shopPhone)
+      setIsOffline(!!data.isOffline)
+      setIsPageLoading(false)
+    })
   }, [])
 
-  const handleSave = () => {
-    localStorage.setItem("nailly_shop_status", shopStatus)
-    localStorage.setItem("nailly_shop_open_time", openTime)
-    localStorage.setItem("nailly_shop_close_time", closeTime)
-    localStorage.setItem("nailly_shop_phone", shopPhone)
+  const handleSave = async () => {
+    setIsSaving(true)
+    try {
+      const result = await updateSettings({
+        shopStatus,
+        openTime,
+        closeTime,
+        shopPhone,
+      })
+      setIsOffline(!!result.isOffline)
+      setShowModal(true)
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setIsSaving(false)
+    }
+  }
 
-    setShowModal(true)
+  if (isPageLoading) {
+    return (
+      <div className="flex h-96 items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-rose-200 border-t-rose-500" />
+          <p className="text-xs text-neutral-400 font-bold">กำลังโหลดข้อมูลตั้งค่า...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -40,6 +64,12 @@ export function SettingsPage() {
         </h1>
         <p className="text-xs text-neutral-500 font-semibold mt-1">ตั้งค่าเปิด-ปิดให้บริการ และรายละเอียดต่างๆ ของร้าน</p>
       </div>
+
+      {isOffline && (
+        <div className="rounded-xl border-2 border-amber-200 bg-amber-50 px-4 py-2.5 text-xs font-semibold text-amber-800">
+          ⚠️ กำลังแสดงข้อมูลแบบออฟไลน์ (เชื่อมต่อเซิร์ฟเวอร์ไม่ได้)
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Form */}
@@ -125,10 +155,14 @@ export function SettingsPage() {
           <div className="border-t-2 border-outline-variant/60 pt-4 flex justify-end">
             <button
               onClick={handleSave}
-              className="bg-gradient-to-r from-primary to-secondary text-white px-6 py-3 rounded-xl font-bold border-2 border-on-surface shadow-[4px_4px_0px_0px_#1e1b4b] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#1e1b4b] active:scale-95 transition-all flex items-center gap-2 text-xs"
+              disabled={isSaving}
+              className={cn(
+                "bg-gradient-to-r from-primary to-secondary text-white px-6 py-3 rounded-xl font-bold border-2 border-on-surface shadow-[4px_4px_0px_0px_#1e1b4b] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#1e1b4b] active:scale-95 transition-all flex items-center gap-2 text-xs",
+                isSaving && "opacity-80 cursor-not-allowed"
+              )}
             >
               <Save className="h-4 w-4" />
-              บันทึกการตั้งค่า
+              {isSaving ? "กำลังบันทึก..." : "บันทึกการตั้งค่า"}
             </button>
           </div>
         </div>

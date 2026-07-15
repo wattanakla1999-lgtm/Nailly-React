@@ -124,7 +124,8 @@ function mapBooking(booking: BookingApiRecord): Appointment {
 
 export async function fetchBookings(filters: BookingFilters): Promise<FetchBookingsResult> {
   try {
-    const response = await api.get<PaginationResponse<BookingApiRecord>>("/bookings", {
+    const endpoint = filters.phone ? "/bookings/customer" : "/bookings"
+    const response = await api.get<PaginationResponse<BookingApiRecord>>(endpoint, {
       params: {
         page: filters.page,
         limit: filters.limit,

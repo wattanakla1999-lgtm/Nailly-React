@@ -3,9 +3,10 @@ import { User, Phone } from "lucide-react"
 import { Y2KModal } from "@/components/Y2KModal"
 import { DatePicker } from "@/components/forms/DatePicker"
 import { Dropdown, type DropdownOption } from "@/components/forms/Dropdown"
-import type { UpdateBookingPayload } from "@/services/bookingService"
+import { fetchBusySlots, type UpdateBookingPayload } from "@/services/bookingService"
 import type { Technician } from "@/services/technicianService"
 import type { Appointment, Customer, Service } from "@/types"
+import { cn } from "@/lib/utils"
 
 interface EditModalProps {
   isOpen: boolean
@@ -27,6 +28,9 @@ export function EditAppointmentModal({ isOpen, onClose, onSave, appointment, cus
   const [time, setTime] = useState("")
   const [note, setNote] = useState("")
   const [saving, setSaving] = useState(false)
+  const [busySlots, setBusySlots] = useState<string[]>([])
+  const [originalDate, setOriginalDate] = useState("")
+  const [originalTime, setOriginalTime] = useState("")
 
   const customerOptions = useMemo<DropdownOption[]>(() => customers.map((customer) => ({
     value: customer.id,
@@ -50,20 +54,46 @@ export function EditAppointmentModal({ isOpen, onClose, onSave, appointment, cus
       setTechnicianId(appointment.technicianId || "")
       setNote(appointment.note || "")
 
+      let originalD = appointment.date
+      let originalT = appointment.time
+
       if (appointment.startAt) {
         const startAt = new Date(appointment.startAt)
-        setDate(startAt.toLocaleDateString("sv-SE", { timeZone: "Asia/Bangkok" }))
-        setTime(startAt.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Bangkok" }))
+        originalD = startAt.toLocaleDateString("sv-SE", { timeZone: "Asia/Bangkok" })
+        originalT = startAt.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Bangkok" })
+        setDate(originalD)
+        setTime(originalT)
       } else {
         setDate(appointment.date)
         setTime(appointment.time)
       }
+
+      setOriginalDate(originalD)
+      setOriginalTime(originalT)
     }
   }, [appointment])
+
+  useEffect(() => {
+    if (date) {
+      const techId = technicianId ? Number(technicianId) : null
+      const svcId = serviceId ? Number(serviceId) : null
+      void fetchBusySlots(date, techId, svcId).then((slots) => {
+        setBusySlots(slots)
+      })
+    } else {
+      setBusySlots([])
+    }
+  }, [date, technicianId, serviceId])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!appointment?.id || !userId || !serviceId || !customerName || !phone || !date || !time) return
+
+    const isOverlapping = busySlots.includes(time) && !(date === originalDate && time === originalTime)
+    if (isOverlapping) {
+      alert("ช่วงเวลานี้คิวซ้อนกัน กรุณาเลือกเวลาใหม่ค่ะ")
+      return
+    }
 
     setSaving(true)
     try {
@@ -150,8 +180,16 @@ export function EditAppointmentModal({ isOpen, onClose, onSave, appointment, cus
               type="time"
               value={time}
               onChange={(e) => setTime(e.target.value)}
-              className="w-full h-10 px-3 bg-surface border-2 border-outline-variant focus:border-primary focus:ring-0 rounded-xl font-bold text-xs outline-none"
+              className={cn(
+                "w-full h-10 px-3 bg-surface border-2 focus:ring-0 rounded-xl font-bold text-xs outline-none",
+                busySlots.includes(time) && !(date === originalDate && time === originalTime)
+                  ? "border-red-400 text-red-500 focus:border-red-500"
+                  : "border-outline-variant focus:border-primary"
+              )}
             />
+            {busySlots.includes(time) && !(date === originalDate && time === originalTime) && (
+              <p className="text-[9px] text-red-500 font-bold mt-0.5">⚠️ คิวเวลานี้ทับกันอยู่</p>
+            )}
           </div>
         </div>
 

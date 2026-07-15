@@ -3,9 +3,10 @@ import { User, Phone } from "lucide-react"
 import { Y2KModal } from "@/components/Y2KModal"
 import { DatePicker } from "@/components/forms/DatePicker"
 import { Dropdown, type DropdownOption } from "@/components/forms/Dropdown"
-import type { BookingPayload } from "@/services/bookingService"
+import { fetchBusySlots, type BookingPayload } from "@/services/bookingService"
 import type { Technician } from "@/services/technicianService"
 import type { Customer, Service } from "@/types"
+import { cn } from "@/lib/utils"
 
 interface AddModalProps {
   isOpen: boolean
@@ -26,6 +27,7 @@ export function AddAppointmentModal({ isOpen, onClose, onSave, customers, servic
   const [time, setTime] = useState("")
   const [note, setNote] = useState("")
   const [saving, setSaving] = useState(false)
+  const [busySlots, setBusySlots] = useState<string[]>([])
 
   const customerOptions = useMemo<DropdownOption[]>(() => customers.map((customer) => ({
     value: customer.id,
@@ -50,12 +52,30 @@ export function AddAppointmentModal({ isOpen, onClose, onSave, customers, servic
     setDate("")
     setTime("")
     setNote("")
+    setBusySlots([])
   }, [isOpen, services])
+
+  useEffect(() => {
+    if (date) {
+      const techId = technicianId ? Number(technicianId) : null
+      const svcId = serviceId ? Number(serviceId) : null
+      void fetchBusySlots(date, techId, svcId).then((slots) => {
+        setBusySlots(slots)
+      })
+    } else {
+      setBusySlots([])
+    }
+  }, [date, technicianId, serviceId])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!userId || !serviceId || !customerName || !phone || !date || !time) {
       alert("กรุณากรอกข้อมูลให้ครบถ้วน")
+      return
+    }
+
+    if (busySlots.includes(time)) {
+      alert("ช่วงเวลานี้คิวซ้อนกัน กรุณาเลือกเวลาใหม่ค่ะ")
       return
     }
 
@@ -149,8 +169,16 @@ export function AddAppointmentModal({ isOpen, onClose, onSave, customers, servic
               type="time"
               value={time}
               onChange={(e) => setTime(e.target.value)}
-              className="w-full h-10 px-3 bg-surface border-2 border-outline-variant focus:border-primary focus:ring-0 rounded-xl font-bold text-xs outline-none"
+              className={cn(
+                "w-full h-10 px-3 bg-surface border-2 focus:ring-0 rounded-xl font-bold text-xs outline-none",
+                busySlots.includes(time)
+                  ? "border-red-400 text-red-500 focus:border-red-500"
+                  : "border-outline-variant focus:border-primary"
+              )}
             />
+            {busySlots.includes(time) && (
+              <p className="text-[9px] text-red-500 font-bold mt-0.5">⚠️ คิวเวลานี้ทับกันอยู่</p>
+            )}
           </div>
         </div>
 

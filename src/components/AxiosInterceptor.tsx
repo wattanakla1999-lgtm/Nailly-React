@@ -25,7 +25,7 @@ export function AxiosInterceptor({ children }: AxiosInterceptorProps) {
         if (authData) {
           try {
             const parsed = JSON.parse(authData)
-            const token = parsed.token || parsed.username || ""
+            const token = parsed.token || ""
             if (token && config.headers) {
               config.headers.Authorization = `Bearer ${token}`
             }

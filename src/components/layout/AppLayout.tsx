@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom"
 import {
   LayoutDashboard,
@@ -30,6 +31,7 @@ export function AppLayout() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+  const [showProfileMenu, setShowProfileMenu] = useState(false)
 
   const handleLogout = () => {
     logout()
@@ -46,8 +48,47 @@ export function AppLayout() {
             <button aria-label="Notifications" className="text-primary hover:text-secondary transition-colors">
               <Bell className="h-6 w-6" />
             </button>
-            <div className="w-9 h-9 rounded-xl overflow-hidden border-2 border-primary cursor-pointer hover:scale-105 transition-transform flex items-center justify-center bg-gradient-to-br from-primary to-secondary text-white font-bold text-sm">
-              {user?.name?.charAt(0) ?? "A"}
+            <div className="relative">
+              <button
+                onClick={() => setShowProfileMenu(!showProfileMenu)}
+                className="w-9 h-9 rounded-xl overflow-hidden border-2 border-primary cursor-pointer hover:scale-105 transition-transform flex items-center justify-center bg-gradient-to-br from-primary to-secondary text-white font-bold text-sm"
+              >
+                {user?.name?.charAt(0) ?? "A"}
+              </button>
+
+              {showProfileMenu && (
+                <>
+                  {/* Backdrop overlay to close when clicking outside */}
+                  <div className="fixed inset-0 z-40" onClick={() => setShowProfileMenu(false)} />
+                  
+                  <div className="absolute right-0 mt-2 w-48 bg-white border-3 border-on-surface rounded-2xl shadow-[4px_4px_0px_#FB923C] py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                    <div className="px-4 py-2 border-b-2 border-outline-variant/60">
+                      <p className="text-xs font-black text-on-surface truncate">{user?.name ?? "ผู้ดูแลระบบ"}</p>
+                      <p className="text-[10px] text-neutral-400 font-bold truncate">@{user?.username ?? "admin"}</p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setShowProfileMenu(false)
+                        navigate("/settings")
+                      }}
+                      className="w-full text-left px-4 py-2.5 text-xs font-bold text-neutral-700 hover:bg-neutral-50 flex items-center gap-2"
+                    >
+                      <Settings className="h-4 w-4" />
+                      ตั้งค่าร้าน
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowProfileMenu(false)
+                        handleLogout()
+                      }}
+                      className="w-full text-left px-4 py-2.5 text-xs font-bold text-red-500 hover:bg-red-50 flex items-center gap-2 border-t border-dashed border-outline-variant/60"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      ออกจากระบบ
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
