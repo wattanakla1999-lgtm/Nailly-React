@@ -197,6 +197,8 @@ interface DateTimeStepProps {
   todayDateString: string
   onNext: () => void
   busySlots?: string[]
+  busySlotsLoading?: boolean
+  busySlotsOffline?: boolean
 }
 
 export function DateTimeStep({
@@ -208,7 +210,11 @@ export function DateTimeStep({
   todayDateString,
   onNext,
   busySlots = [],
+  busySlotsLoading = false,
+  busySlotsOffline = false,
 }: DateTimeStepProps) {
+  const canContinue = Boolean(selectedDate && selectedTime && !busySlotsLoading && !busySlotsOffline)
+
   return (
     <div className="space-y-6">
       <div>
@@ -230,6 +236,12 @@ export function DateTimeStep({
 
         <div className="space-y-1.5">
           <label className="text-xs font-bold uppercase tracking-wider text-neutral-600">ช่วงเวลา</label>
+          {busySlotsLoading && (
+            <p className="text-[10px] font-bold text-neutral-400">กำลังตรวจสอบเวลาว่าง...</p>
+          )}
+          {busySlotsOffline && (
+            <p className="text-[10px] font-bold text-red-500">ยังตรวจสอบเวลาว่างไม่ได้ กรุณาลองใหม่อีกครั้ง</p>
+          )}
           <div className="grid grid-cols-3 gap-2">
             {timeSlots.map((time) => {
               const isBusy = busySlots.includes(time)
@@ -237,11 +249,11 @@ export function DateTimeStep({
                 <button
                   key={time}
                   type="button"
-                  disabled={isBusy}
+                  disabled={isBusy || busySlotsLoading || busySlotsOffline}
                   onClick={() => onChangeTime(time)}
                   className={cn(
                     "py-2.5 rounded-lg font-bold text-xs transition-all border-3",
-                    isBusy
+                    isBusy || busySlotsLoading || busySlotsOffline
                       ? "bg-neutral-100 border-neutral-200 text-neutral-400 cursor-not-allowed shadow-none"
                       : selectedTime === time
                       ? "bg-white text-on-surface border-primary shadow-[4px_4px_0px_#FB923C] -translate-x-[2px] -translate-y-[2px]"
@@ -257,11 +269,11 @@ export function DateTimeStep({
       </div>
 
       <button
-        disabled={!selectedDate || !selectedTime}
+        disabled={!canContinue}
         onClick={onNext}
         className={cn(
           "w-full rounded-xl py-3.5 font-bold border-2 border-on-surface shadow-[4px_4px_0px_0px_#1e1b4b] transition-all flex items-center justify-center gap-2 text-sm",
-          selectedDate && selectedTime
+          canContinue
             ? "bg-gradient-to-r from-primary to-secondary text-white hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#1e1b4b]"
             : "bg-neutral-200 border-neutral-300 text-neutral-400 cursor-not-allowed shadow-none"
         )}

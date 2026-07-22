@@ -64,6 +64,11 @@ export interface FetchBookingsResult {
   isOffline: boolean
 }
 
+export interface BusySlotsResult {
+  busySlots: string[]
+  isOffline: boolean
+}
+
 function toApiStatus(status?: AppStatus | "all"): BookingApiStatus | undefined {
   if (!status || status === "all") return undefined
   if (status === "done") return "completed"
@@ -191,6 +196,15 @@ export async function fetchBusySlots(
   technicianId?: number | null,
   serviceId?: number | null,
 ): Promise<string[]> {
+  const result = await fetchBusySlotAvailability(date, technicianId, serviceId)
+  return result.busySlots
+}
+
+export async function fetchBusySlotAvailability(
+  date: string,
+  technicianId?: number | null,
+  serviceId?: number | null,
+): Promise<BusySlotsResult> {
   try {
     const response = await api.get<{ busySlots: string[] }>("/bookings/busy-slots", {
       params: {
@@ -199,9 +213,15 @@ export async function fetchBusySlots(
         serviceId: serviceId || undefined,
       },
     })
-    return response.data.busySlots || []
+    return {
+      busySlots: response.data.busySlots || [],
+      isOffline: false,
+    }
   } catch (error) {
-    console.warn("Unable to fetch busy slots from backend, using empty list.", error)
-    return []
+    console.warn("Unable to fetch busy slots from backend.", error)
+    return {
+      busySlots: [],
+      isOffline: true,
+    }
   }
 }

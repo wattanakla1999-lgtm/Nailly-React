@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useCallback } from "react"
 import { AlertCircle, ChevronLeft, RefreshCw } from "lucide-react"
 import { BookingHeader } from "@/components/booking/BookingHeader"
 import { BookingSummaryBanner } from "@/components/booking/BookingSummaryBanner"
@@ -8,6 +8,8 @@ import { LoadingPopup } from "@/components/LoadingPopup"
 import { getApiErrorMessage } from "@/lib/apiError"
 import { Y2KModal } from "@/components/Y2KModal"
 import { generateTimeSlots } from "@/lib/utils"
+import { getLocalDateValue, normalizePhone, validateBookingDraft } from "@/lib/bookingValidation"
+import { buildStaffOptions } from "@/lib/bookingOptions"
 import {
   GreetingStep,
   ServiceSelectionStep,
@@ -17,29 +19,10 @@ import {
   SuccessStep,
 } from "@/components/booking/BookingSteps"
 import { fetchServices } from "@/services/serviceService"
-import { fetchTechnicians, type Technician } from "@/services/technicianService"
-import { createBooking, fetchBookings, fetchBusySlots } from "@/services/bookingService"
+import { fetchTechnicians } from "@/services/technicianService"
+import { createBooking, fetchBookings, fetchBusySlotAvailability } from "@/services/bookingService"
+import { fetchSettings, type ShopSettings } from "@/services/settingService"
 import type { Service, Staff, Appointment } from "@/types"
-
-const ANY_STAFF: Staff = {
-  id: "any",
-  name: "ใครก็ได้ (สุ่มช่าง)",
-  role: "เลือกช่างที่ว่างเร็วที่สุด",
-  img: "💅",
-  rate: 0,
-}
-
-function mapTechnicianToStaff(technician: Technician): Staff {
-  return {
-    id: technician.id,
-    name: technician.name,
-    role: technician.specialties.join(", ") || technician.role,
-    img: technician.profileImg || technician.name.trim().charAt(0) || "ช",
-    rate: technician.rate,
-  }
-}
-
-
 
 const STATUS_MAP = {
   pending: { label: "รอยืนยัน", class: "bg-secondary-container text-on-secondary-container border-secondary" },
@@ -49,7 +32,14 @@ const STATUS_MAP = {
   cancelled: { label: "ยกเลิกแล้ว", class: "bg-red-100 text-red-600 border-red-300" },
 }
 
-const todayDateString = new Date().toISOString().split("T")[0]
+const DEFAULT_SHOP_SETTINGS: ShopSettings = {
+  shopStatus: "open",
+  openTime: "10:00",
+  closeTime: "20:00",
+  shopPhone: "02-123-4567",
+}
+
+const todayDateString = getLocalDateValue()
 
 export function CustomerBookingPage() {
   const [activeTab, setActiveTab] = useState<"book" | "my-bookings">("book")
@@ -57,6 +47,8 @@ export function CustomerBookingPage() {
   const [loading, setLoading] = useState(false)
   const [catalogLoading, setCatalogLoading] = useState(true)
   const [catalogOffline, setCatalogOffline] = useState(false)
+  const [settingsLoading, setSettingsLoading] = useState(true)
+  const [shopSettings, setShopSettings] = useState<ShopSettings>(DEFAULT_SHOP_SETTINGS)
   const [services, setServices] = useState<Service[]>([])
   const [staffs, setStaffs] = useState<Staff[]>([])
 
@@ -72,41 +64,54 @@ export function CustomerBookingPage() {
   // List of bookings from localStorage
   const [myBookings, setMyBookings] = useState<Appointment[]>([])
   const [searchPhone, setSearchPhone] = useState("")
-  const [isShopOpen, setIsShopOpen] = useState(true)
   const [showErrorModal, setShowErrorModal] = useState(false)
   const [errorMessage, setErrorMessage] = useState("")
   const [busySlots, setBusySlots] = useState<string[]>([])
+  const [busySlotsLoading, setBusySlotsLoading] = useState(false)
+  const [busySlotsOffline, setBusySlotsOffline] = useState(false)
 
   const timeSlots = useMemo(() => {
-    const open = localStorage.getItem("nailly_shop_open_time") || "10:00"
-    const close = localStorage.getItem("nailly_shop_close_time") || "20:00"
-    return generateTimeSlots(open, close)
-  }, [activeTab])
+    return generateTimeSlots(shopSettings.openTime, shopSettings.closeTime)
+  }, [shopSettings.closeTime, shopSettings.openTime])
+
+  const isShopOpen = shopSettings.shopStatus === "open"
 
   const nextStep = () => setStep((s) => s + 1)
   const prevStep = () => setStep((s) => s - 1)
 
+  const showBookingError = (message: string) => {
+    setErrorMessage(message)
+    setShowErrorModal(true)
+  }
+
   const loadBookingCatalog = async () => {
     setCatalogLoading(true)
+    try {
+      const [serviceResult, technicianResult] = await Promise.all([
+        fetchServices({ page: 1, limit: 100 }),
+        fetchTechnicians({ page: 1, limit: 100 }),
+      ])
 
-    const [serviceResult, technicianResult] = await Promise.all([
-      fetchServices({ page: 1, limit: 100 }),
-      fetchTechnicians({ page: 1, limit: 100 }),
-    ])
+      setServices(serviceResult.services)
+      setStaffs(buildStaffOptions(technicianResult.technicians))
+      setCatalogOffline(serviceResult.isOffline || technicianResult.isOffline)
+    } finally {
+      setCatalogLoading(false)
+    }
+  }
 
-    setServices(serviceResult.services)
-    setStaffs([
-      ANY_STAFF,
-      ...technicianResult.technicians
-        .filter((technician) => technician.status === "active")
-        .map(mapTechnicianToStaff),
-    ])
-    setCatalogOffline(serviceResult.isOffline || technicianResult.isOffline)
-    setCatalogLoading(false)
+  const loadShopSettings = async () => {
+    setSettingsLoading(true)
+    try {
+      const settings = await fetchSettings()
+      setShopSettings(settings)
+    } finally {
+      setSettingsLoading(false)
+    }
   }
 
   // Fetch bookings on mount or when tab changes
-  const loadBookings = async (phoneToSearch?: string) => {
+  const loadBookings = useCallback(async (phoneToSearch?: string) => {
     const queryPhone = phoneToSearch || searchPhone
     if (!queryPhone) {
       setMyBookings([])
@@ -124,13 +129,10 @@ export function CustomerBookingPage() {
     } catch (e) {
       console.error(e)
     }
-  }
+  }, [searchPhone])
 
   useEffect(() => {
     setLoading(true)
-    const status = localStorage.getItem("nailly_shop_status") || "open"
-    setIsShopOpen(status === "open")
-
     const timer = setTimeout(() => {
       setLoading(false)
     }, 600)
@@ -144,49 +146,107 @@ export function CustomerBookingPage() {
       }, 300)
       return () => clearTimeout(timer)
     }
-  }, [searchPhone, activeTab])
+  }, [searchPhone, activeTab, loadBookings])
 
   useEffect(() => {
     void loadBookingCatalog()
+    void loadShopSettings()
   }, [])
 
   useEffect(() => {
-    if (selectedDate) {
-      const techId = selectedStaff && selectedStaff.id !== "any" ? Number(selectedStaff.id) : null
-      const serviceId = selectedService ? Number(selectedService.id) : null
-      void fetchBusySlots(selectedDate, techId, serviceId).then((slots) => {
-        setBusySlots(slots)
-      })
-    } else {
+    if (!selectedDate) {
       setBusySlots([])
+      setBusySlotsLoading(false)
+      setBusySlotsOffline(false)
+      return
+    }
+
+    let cancelled = false
+    const techId = selectedStaff && selectedStaff.id !== "any" ? Number(selectedStaff.id) : null
+    const serviceId = selectedService ? Number(selectedService.id) : null
+
+    setBusySlotsLoading(true)
+    setBusySlotsOffline(false)
+
+    void fetchBusySlotAvailability(selectedDate, techId, serviceId)
+      .then((result) => {
+        if (cancelled) return
+        setBusySlots(result.busySlots)
+        setBusySlotsOffline(result.isOffline)
+      })
+      .finally(() => {
+        if (!cancelled) setBusySlotsLoading(false)
+      })
+
+    return () => {
+      cancelled = true
     }
   }, [selectedDate, selectedStaff, selectedService])
 
+  useEffect(() => {
+    if (selectedTime && (busySlots.includes(selectedTime) || !timeSlots.includes(selectedTime))) {
+      setSelectedTime("")
+    }
+  }, [busySlots, selectedTime, timeSlots])
+
   const handleBookingSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!customerName || !customerPhone) {
-      alert("กรุณากรอกข้อมูลให้ครบถ้วน")
+
+    if (catalogLoading || settingsLoading || busySlotsLoading) {
+      showBookingError("ระบบกำลังตรวจสอบข้อมูลการจอง กรุณารอสักครู่แล้วลองอีกครั้ง")
+      return
+    }
+
+    if (!isShopOpen) {
+      showBookingError("ขณะนี้ร้านปิดรับจองคิวออนไลน์")
+      return
+    }
+
+    if (catalogOffline) {
+      showBookingError("ยังโหลดรายการบริการหรือช่างจากเซิร์ฟเวอร์ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง")
+      return
+    }
+
+    if (busySlotsOffline) {
+      showBookingError("ยังตรวจสอบเวลาว่างจากเซิร์ฟเวอร์ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง")
+      return
+    }
+
+    const validation = validateBookingDraft({
+      services,
+      staffs,
+      timeSlots,
+      busySlots,
+      selectedService,
+      selectedStaff,
+      selectedDate,
+      selectedTime,
+      customerName,
+      customerPhone,
+      customerNote,
+    })
+
+    if (!validation.ok) {
+      showBookingError(validation.errors.join(" / "))
       return
     }
 
     setLoading(true)
 
     try {
-      const startAt = `${selectedDate}T${selectedTime}:00+07:00` // assume local Thai time offset
-
       await createBooking({
-        userId: 1, // Mock user ID 1 for now (until LINE Login is integrated)
-        serviceId: Number(selectedService?.id) || 0,
-        technicianId: selectedStaff && selectedStaff.id !== "any" ? Number(selectedStaff.id) : null,
-        startAt,
-        customerName: customerName.trim(),
-        customerPhone: customerPhone.trim(),
-        note: customerNote.trim() || undefined,
+        userId: null,
+        serviceId: Number(validation.value.service.id),
+        technicianId: validation.value.staff.id !== "any" ? Number(validation.value.staff.id) : null,
+        startAt: validation.value.startAt,
+        customerName: validation.value.customerName,
+        customerPhone: validation.value.customerPhone,
+        note: validation.value.note,
       })
 
       // Set phone number to filter history easily later
-      setSearchPhone(customerPhone)
-      await loadBookings(customerPhone)
+      setSearchPhone(validation.value.customerPhone)
+      await loadBookings(validation.value.customerPhone)
 
       setLoading(false)
       nextStep()
@@ -203,16 +263,16 @@ export function CustomerBookingPage() {
   const filteredBookings = myBookings.filter((b) => {
     if (!searchPhone) return true // Show all by default
     if (!b || !b.phone) return false // Prevent crashes if phone is missing
-    return b.phone.replace(/[^0-9]/g, "").includes(searchPhone.replace(/[^0-9]/g, ""))
+    return normalizePhone(b.phone).includes(normalizePhone(searchPhone))
   })
 
-  const shopPhone = localStorage.getItem("nailly_shop_phone")
+  const shopPhone = shopSettings.shopPhone
 
   return (
     <div className="min-h-screen bg-mesh text-on-surface flex flex-col">
       <LoadingPopup
-        isOpen={loading || catalogLoading}
-        message={catalogLoading ? "กำลังโหลดบริการและช่าง..." : "กำลังดำเนินการ..."}
+        isOpen={loading || catalogLoading || settingsLoading}
+        message={catalogLoading ? "กำลังโหลดบริการและช่าง..." : settingsLoading ? "กำลังโหลดข้อมูลร้าน..." : "กำลังดำเนินการ..."}
       />
 
       {/* ── Immersive Sticky Header ── */}
@@ -274,7 +334,10 @@ export function CustomerBookingPage() {
                     <ServiceSelectionStep
                       services={services}
                       selectedService={selectedService}
-                      onSelectService={setSelectedService}
+                      onSelectService={(service) => {
+                        setSelectedService(service)
+                        setSelectedTime("")
+                      }}
                       onNext={nextStep}
                     />
                   )}
@@ -284,7 +347,10 @@ export function CustomerBookingPage() {
                     <StaffSelectionStep
                       staffs={staffs}
                       selectedStaff={selectedStaff}
-                      onSelectStaff={setSelectedStaff}
+                      onSelectStaff={(staff) => {
+                        setSelectedStaff(staff)
+                        setSelectedTime("")
+                      }}
                       onNext={nextStep}
                     />
                   )}
@@ -295,11 +361,16 @@ export function CustomerBookingPage() {
                       timeSlots={timeSlots}
                       selectedDate={selectedDate}
                       selectedTime={selectedTime}
-                      onChangeDate={setSelectedDate}
+                      onChangeDate={(date) => {
+                        setSelectedDate(date)
+                        setSelectedTime("")
+                      }}
                       onChangeTime={setSelectedTime}
                       todayDateString={todayDateString}
                       onNext={nextStep}
                       busySlots={busySlots}
+                      busySlotsLoading={busySlotsLoading}
+                      busySlotsOffline={busySlotsOffline}
                     />
                   )}
 
@@ -329,7 +400,7 @@ export function CustomerBookingPage() {
                       onReset={() => {
                         setSelectedService(null)
                         setSelectedStaff(null)
-                        setSelectedDate("")
+                        setSelectedDate(todayDateString)
                         setSelectedTime("")
                         setCustomerName("")
                         setCustomerPhone("")
