@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react"
 import { useNavigate, useLocation, Navigate } from "react-router-dom"
 import { Eye, EyeOff, Sparkles, Lock, User, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { LanguageSwitcher } from "@/components/LanguageSwitcher"
 import { useAuth } from "@/hooks/useAuth"
 import { cn } from "@/lib/utils"
 
@@ -55,6 +56,10 @@ export function LoginPage() {
 
   return (
     <div className="relative flex min-h-screen overflow-hidden bg-mesh">
+      <div className="fixed right-4 top-4 z-50">
+        <LanguageSwitcher />
+      </div>
+
       {/* ── Left panel — branding (hidden on mobile) ── */}
       <div className="relative hidden flex-col items-center justify-center gap-8 bg-gradient-to-br from-[#818CF8] to-[#FB923C] px-12 text-white lg:flex lg:w-[480px] xl:w-[540px] border-r-4 border-on-surface">
         {/* Pattern overlay */}

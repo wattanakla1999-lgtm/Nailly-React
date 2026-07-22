@@ -12,6 +12,7 @@ import {
   Bell,
   Plus,
 } from "lucide-react"
+import { LanguageSwitcher } from "@/components/LanguageSwitcher"
 import { useAuth } from "@/hooks/useAuth"
 import { cn } from "@/lib/utils"
 
@@ -45,6 +46,7 @@ export function AppLayout() {
         <div className="flex justify-between items-center h-16 px-6 w-full max-w-7xl mx-auto">
           <div className="text-2xl text-primary font-extrabold tracking-tighter">Nailly</div>
           <div className="flex items-center gap-4">
+            <LanguageSwitcher className="shadow-none" />
             <button aria-label="Notifications" className="text-primary hover:text-secondary transition-colors">
               <Bell className="h-6 w-6" />
             </button>
@@ -126,6 +128,8 @@ export function AppLayout() {
             <p className="text-[10px] text-secondary font-bold uppercase tracking-wider mt-1">Management</p>
           </div>
         </div>
+
+        <LanguageSwitcher className="mx-1 mb-1 w-fit" />
 
         {/* Action Button (Add Appt shortcut) */}
         <div className="px-1 mb-2">

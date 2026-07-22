@@ -1,4 +1,5 @@
 import { Calendar, History } from "lucide-react"
+import { LanguageSwitcher } from "@/components/LanguageSwitcher"
 import { cn } from "@/lib/utils"
 
 interface BookingHeaderProps {
@@ -20,7 +21,8 @@ export function BookingHeader({ activeTab, setActiveTab, setStep }: BookingHeade
         </div>
 
         {/* Toggle buttons for Book vs My Bookings */}
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
+          <LanguageSwitcher className="hidden sm:inline-flex shadow-none" />
           <button
             onClick={() => {
               setActiveTab("book")
@@ -51,6 +53,9 @@ export function BookingHeader({ activeTab, setActiveTab, setStep }: BookingHeade
             การจองของฉัน
           </button>
         </div>
+      </div>
+      <div className="flex justify-end px-6 pb-3 sm:hidden">
+        <LanguageSwitcher className="shadow-none" />
       </div>
     </header>
   )
