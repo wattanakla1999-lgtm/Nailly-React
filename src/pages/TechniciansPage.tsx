@@ -4,6 +4,7 @@ import { LoadingPopup } from "@/components/LoadingPopup"
 import { Button } from "@/components/ui/button"
 import { Y2KModal } from "@/components/Y2KModal"
 import { getApiErrorMessage } from "@/lib/apiError"
+import { useTranslation } from "@/hooks/useTranslation"
 import { cn } from "@/lib/utils"
 import {
   AVATAR_OPTIONS,
@@ -94,6 +95,7 @@ function toTechnicianPayload(form: TechnicianFormState): TechnicianPayload {
 }
 
 export function TechniciansPage() {
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
   const [searchQuery, setSearchQuery] = useState("")
   const activeStatus = "all"
@@ -226,17 +228,17 @@ export function TechniciansPage() {
 
   return (
     <div className="space-y-4">
-      <LoadingPopup isOpen={loading} message="กำลังโหลดข้อมูลช่างทำเล็บ..." />
+      <LoadingPopup isOpen={loading} message={t("admin.technicians.loading", "กำลังโหลดข้อมูลช่างทำเล็บ...")} />
 
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
           <h1 className="flex items-baseline gap-2 text-2xl font-black tracking-tight text-on-surface">
-            ช่างทำเล็บ
+            {t("admin.technicians.title", "ช่างทำเล็บ")}
             <span className="text-base font-normal text-outline">({total})</span>
           </h1>
           {isOffline && (
             <p className="text-[10px] text-amber-500 font-bold flex items-center gap-1 mt-1">
-              <AlertCircle className="h-3 w-3" /> เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ แสดงข้อมูลจากเครื่องนี้
+              <AlertCircle className="h-3 w-3" /> {t("admin.technicians.offline", "เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ แสดงข้อมูลจากเครื่องนี้")}
             </p>
           )}
         </div>
@@ -246,15 +248,15 @@ export function TechniciansPage() {
           className="h-9 shrink-0 gap-1.5 rounded-xl border-2 border-on-surface bg-gradient-to-r from-primary to-secondary px-3 text-xs font-bold text-white shadow-[3px_3px_0px_0px_#1e1b4b] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#1e1b4b]"
         >
           <Plus className="h-4 w-4 stroke-[3px]" />
-          เพิ่มช่าง
+          {t("admin.technicians.add", "เพิ่มช่าง")}
         </Button>
       </div>
 
       <div className="grid grid-cols-3 gap-2">
         {[
-          { label: "ช่างทั้งหมด", value: total },
-          { label: "พร้อมรับงาน", value: activeCount },
-          { label: "ปีประสบการณ์รวม", value: totalExperienceYears },
+          { label: t("admin.technicians.total", "ช่างทั้งหมด"), value: total },
+          { label: t("admin.technicians.active", "พร้อมรับงาน"), value: activeCount },
+          { label: t("admin.technicians.experience", "ปีประสบการณ์รวม"), value: totalExperienceYears },
         ].map(({ label, value }) => (
           <div key={label} className="y2k-card flex min-h-16 flex-col items-center justify-center gap-0.5 p-2 text-center">
             <p className="text-lg font-black text-on-surface">{value}</p>
@@ -268,7 +270,7 @@ export function TechniciansPage() {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-outline" />
           <input
             type="text"
-            placeholder="ค้นหาชื่อ, ชื่อเล่น, เบอร์โทร หรือความถนัด..."
+            placeholder={t("admin.technicians.search", "ค้นหาชื่อ, ชื่อเล่น, เบอร์โทร หรือความถนัด...")}
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
             maxLength={100}
@@ -277,7 +279,7 @@ export function TechniciansPage() {
         </div>
         <div className="y2k-card hidden items-center justify-center gap-2 p-2 lg:flex">
           <Star className="h-4 w-4 fill-secondary text-secondary" />
-          <span className="text-xs font-black text-on-surface">คะแนนเฉลี่ย {averageRate}</span>
+          <span className="text-xs font-black text-on-surface">{t("admin.technicians.averageRating", "คะแนนเฉลี่ย")} {averageRate}</span>
         </div>
       </div>
 
@@ -285,7 +287,7 @@ export function TechniciansPage() {
       {filtered.length === 0 ? (
         <div className="y2k-card p-12 text-center text-neutral-400">
           <UserRoundCog className="mx-auto mb-3 h-12 w-12 opacity-30" />
-          <p className="font-bold text-sm">ไม่พบช่างทำเล็บที่ค้นหา</p>
+          <p className="font-bold text-sm">{t("admin.technicians.empty", "ไม่พบช่างทำเล็บที่ค้นหา")}</p>
         </div>
       ) : (
         <div className="space-y-4">

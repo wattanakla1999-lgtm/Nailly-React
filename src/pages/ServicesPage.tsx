@@ -3,6 +3,7 @@ import { ServiceCard } from "@/components/services/ServiceCard"
 import { Button } from "@/components/ui/button"
 import { Y2KModal } from "@/components/Y2KModal"
 import { getApiErrorMessage } from "@/lib/apiError"
+import { useTranslation } from "@/hooks/useTranslation"
 import { cn } from "@/lib/utils"
 import {
   createService,
@@ -56,6 +57,7 @@ function toServicePayload(form: ServiceFormState): ServicePayload {
 }
 
 export function ServicesPage() {
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
   const activeCategory = "all"
   const [searchQuery, setSearchQuery] = useState("")
@@ -183,17 +185,17 @@ export function ServicesPage() {
 
   return (
     <div className="space-y-4">
-      <LoadingPopup isOpen={loading} message="กำลังค้นหาข้อมูลบริการ..." />
+      <LoadingPopup isOpen={loading} message={t("admin.services.loading", "กำลังค้นหาข้อมูลบริการ...")} />
 
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
           <h1 className="flex items-baseline gap-2 text-2xl font-black tracking-tight text-on-surface">
-            บริการ
+            {t("admin.services.title", "บริการ")}
             <span className="text-base font-normal text-outline">({total})</span>
           </h1>
           {isOffline && (
             <p className="text-[10px] text-amber-500 font-bold flex items-center gap-1 mt-1">
-              <AlertCircle className="h-3 w-3" /> เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ
+              <AlertCircle className="h-3 w-3" /> {t("admin.services.offline", "เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ")}
             </p>
           )}
         </div>
@@ -202,15 +204,15 @@ export function ServicesPage() {
           className="h-9 shrink-0 gap-1.5 rounded-xl border-2 border-on-surface bg-gradient-to-r from-primary to-secondary px-3 text-xs font-bold text-white shadow-[3px_3px_0px_0px_#1e1b4b] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#1e1b4b]"
         >
           <Plus className="h-4 w-4 stroke-[3px]" />
-          เพิ่มบริการ
+          {t("admin.services.add", "เพิ่มบริการ")}
         </Button>
       </div>
 
       <div className="grid grid-cols-3 gap-2">
         {[
-          { label: "บริการทั้งหมด", value: total },
-          { label: "ราคาเฉลี่ย", value: `฿${averagePrice.toLocaleString()}` },
-          { label: "เวลาเฉลี่ย", value: `${averageDuration} นาที` },
+          { label: t("admin.services.total", "บริการทั้งหมด"), value: total },
+          { label: t("admin.services.averagePrice", "ราคาเฉลี่ย"), value: `฿${averagePrice.toLocaleString()}` },
+          { label: t("admin.services.averageDuration", "เวลาเฉลี่ย"), value: `${averageDuration} ${t("booking.service.duration", "นาที")}` },
         ].map(({ label, value }) => (
           <div key={label} className="y2k-card flex min-h-16 flex-col items-center justify-center gap-0.5 p-2 text-center">
             <p className="text-lg font-black text-on-surface">{value}</p>
@@ -223,7 +225,7 @@ export function ServicesPage() {
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-outline" />
         <input
           type="text"
-          placeholder="ค้นหาบริการ..."
+          placeholder={t("admin.services.search", "ค้นหาบริการ...")}
           value={searchQuery}
           onChange={(event) => setSearchQuery(event.target.value)}
           maxLength={100}
@@ -235,7 +237,7 @@ export function ServicesPage() {
       {filtered.length === 0 ? (
         <div className="y2k-card p-12 text-center text-neutral-400">
           <Scissors className="mx-auto mb-3 h-12 w-12 opacity-30" />
-          <p className="font-bold text-sm">ไม่พบบริการที่ค้นหา</p>
+          <p className="font-bold text-sm">{t("admin.services.empty", "ไม่พบบริการที่ค้นหา")}</p>
         </div>
       ) : (
         <div className="space-y-4">
