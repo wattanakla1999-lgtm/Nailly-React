@@ -1,5 +1,6 @@
 import { Calendar, History } from "lucide-react"
 import { LanguageSwitcher } from "@/components/LanguageSwitcher"
+import { useTranslation } from "@/hooks/useTranslation"
 import { cn } from "@/lib/utils"
 
 interface BookingHeaderProps {
@@ -9,6 +10,8 @@ interface BookingHeaderProps {
 }
 
 export function BookingHeader({ activeTab, setActiveTab, setStep }: BookingHeaderProps) {
+  const { t } = useTranslation()
+
   return (
     <header className="bg-surface/90 backdrop-blur-md sticky top-0 w-full z-50 border-b-4 border-outline shadow-sm">
       <div className="flex justify-between items-center h-20 px-6 sm:px-12 w-full">
@@ -16,7 +19,9 @@ export function BookingHeader({ activeTab, setActiveTab, setStep }: BookingHeade
           <span className="text-3xl">💅</span>
           <div>
             <span className="block text-2xl font-black text-primary tracking-tighter leading-none">Nailly</span>
-            <span className="block text-[10px] text-secondary font-bold uppercase tracking-wider mt-1">คิวบอร์ดลูกค้า</span>
+            <span className="block text-[10px] text-secondary font-bold uppercase tracking-wider mt-1">
+              {t("booking.header.subtitle", "คิวบอร์ดลูกค้า")}
+            </span>
           </div>
         </div>
 
@@ -36,7 +41,7 @@ export function BookingHeader({ activeTab, setActiveTab, setStep }: BookingHeade
             )}
           >
             <Calendar className="h-4 w-4" />
-            จองคิวใหม่
+            {t("booking.header.new", "จองคิวใหม่")}
           </button>
           <button
             onClick={() => {
@@ -50,7 +55,7 @@ export function BookingHeader({ activeTab, setActiveTab, setStep }: BookingHeade
             )}
           >
             <History className="h-4 w-4" />
-            การจองของฉัน
+            {t("booking.header.mine", "การจองของฉัน")}
           </button>
         </div>
       </div>

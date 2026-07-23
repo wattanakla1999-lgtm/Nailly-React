@@ -1,6 +1,7 @@
 import React from "react"
 import { Check, Star } from "lucide-react"
 import { DatePicker } from "@/components/forms/DatePicker"
+import { useTranslation } from "@/hooks/useTranslation"
 import { cn } from "@/lib/utils"
 import type { Service, Staff } from "@/types"
 
@@ -11,27 +12,29 @@ interface GreetingStepProps {
 }
 
 export function GreetingStep({ onNext }: GreetingStepProps) {
+  const { t } = useTranslation()
+
   return (
     <div className="py-8 space-y-6 flex flex-col items-center justify-center text-center">
       <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-white border-3 border-primary shadow-[4px_4px_0px_#FB923C] text-4xl animate-bounce">
         💅
       </div>
       <div className="space-y-2">
-        <h1 className="text-3xl font-black text-primary tracking-tighter">จองคิวทำเล็บออนไลน์</h1>
-        <p className="text-sm font-semibold text-neutral-500">จองด่วนใน 4 ขั้นตอน ไม่ต้องรอคิวที่ร้าน</p>
+        <h1 className="text-3xl font-black text-primary tracking-tighter">{t("booking.greeting.title", "จองคิวทำเล็บออนไลน์")}</h1>
+        <p className="text-sm font-semibold text-neutral-500">{t("booking.greeting.subtitle", "จองด่วนใน 4 ขั้นตอน ไม่ต้องรอคิวที่ร้าน")}</p>
       </div>
 
       <div className="w-full max-w-sm space-y-3 bg-primary-container/20 border-2 border-dashed border-outline-variant p-5 rounded-xl text-left text-xs font-semibold text-neutral-700">
-        <p className="flex items-center gap-2">✨ เลือกลายเพ้นท์และต่อเล็บตามชอบ</p>
-        <p className="flex items-center gap-2">⏰ เลือกช่างและวันเวลาที่สะดวกที่สุด</p>
-        <p className="flex items-center gap-2">📱 บันทึกข้อมูล และดูสถานะคิวได้ตลอดเวลา</p>
+        <p className="flex items-center gap-2">{t("booking.greeting.item1", "✨ เลือกลายเพ้นท์และต่อเล็บตามชอบ")}</p>
+        <p className="flex items-center gap-2">{t("booking.greeting.item2", "⏰ เลือกช่างและวันเวลาที่สะดวกที่สุด")}</p>
+        <p className="flex items-center gap-2">{t("booking.greeting.item3", "📱 บันทึกข้อมูล และดูสถานะคิวได้ตลอดเวลา")}</p>
       </div>
 
       <button
         onClick={onNext}
         className="w-full max-w-sm bg-gradient-to-r from-primary to-secondary text-white rounded-xl py-4 font-bold border-2 border-on-surface shadow-[4px_4px_0px_0px_#1e1b4b] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#1e1b4b] active:scale-95 transition-all text-sm uppercase tracking-wider"
       >
-        เริ่มทำการจองคิวเล็บ →
+        {t("booking.greeting.cta", "เริ่มทำการจองคิวเล็บ →")}
       </button>
     </div>
   )
@@ -52,17 +55,19 @@ export function ServiceSelectionStep({
   onSelectService,
   onNext,
 }: ServiceSelectionStepProps) {
+  const { t } = useTranslation()
+
   return (
     <div className="space-y-6 w-full mx-auto h-full flex flex-col justify-between">
       <div>
-        <h2 className="text-2xl font-black text-on-surface tracking-tight">เลือกประเภทบริการ</h2>
-        <p className="text-xs text-neutral-400 font-semibold mt-1">ราคาและจำนวนเวลาจะคำนวณตามจริง</p>
+        <h2 className="text-2xl font-black text-on-surface tracking-tight">{t("booking.service.title", "เลือกประเภทบริการ")}</h2>
+        <p className="text-xs text-neutral-400 font-semibold mt-1">{t("booking.service.subtitle", "ราคาและจำนวนเวลาจะคำนวณตามจริง")}</p>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 overflow-y-auto pr-1 flex-grow my-2">
         {services.length === 0 && (
           <div className="col-span-full flex min-h-40 items-center justify-center rounded-xl border-2 border-dashed border-outline-variant bg-neutral-50 px-4 text-center text-xs font-semibold text-neutral-500">
-            ยังไม่มีข้อมูลบริการจากระบบ
+            {t("booking.service.empty", "ยังไม่มีข้อมูลบริการจากระบบ")}
           </div>
         )}
         {services.map((svc, index) => (
@@ -86,11 +91,11 @@ export function ServiceSelectionStep({
               )}
               <div>
                 <h4 className="font-bold text-xs sm:text-sm text-neutral-800 truncate">{svc.nameTh || svc.name}</h4>
-                <p className="text-[10px] text-neutral-400 font-semibold">{svc.duration} นาที</p>
+                <p className="text-[10px] text-neutral-400 font-semibold">{svc.duration} {t("booking.service.duration", "นาที")}</p>
               </div>
             </div>
             <div className="flex justify-between items-center mt-2 border-t border-dashed border-outline-variant/60 pt-2 shrink-0">
-              <span className="text-[10px] text-neutral-400 font-bold">ราคา</span>
+              <span className="text-[10px] text-neutral-400 font-bold">{t("booking.service.price", "ราคา")}</span>
               <span className="text-xs sm:text-sm font-black text-primary">฿{svc.price}</span>
             </div>
           </div>
@@ -108,7 +113,7 @@ export function ServiceSelectionStep({
               : "bg-neutral-200 border-neutral-300 text-neutral-400 cursor-not-allowed shadow-none"
           )}
         >
-          เลือกช่างทำเล็บต่อ
+          {t("booking.service.next", "เลือกช่างทำเล็บต่อ")}
         </button>
       </div>
     </div>
@@ -130,17 +135,19 @@ export function StaffSelectionStep({
   onSelectStaff,
   onNext,
 }: StaffSelectionStepProps) {
+  const { t } = useTranslation()
+
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-black text-on-surface tracking-tight">เลือกช่างทำเล็บคนโปรด</h2>
-        <p className="text-xs text-neutral-400 font-semibold mt-1">เราคัดช่างฝีมือดีมาคอยบริการคุณ</p>
+        <h2 className="text-2xl font-black text-on-surface tracking-tight">{t("booking.staff.title", "เลือกช่างทำเล็บคนโปรด")}</h2>
+        <p className="text-xs text-neutral-400 font-semibold mt-1">{t("booking.staff.subtitle", "เราคัดช่างฝีมือดีมาคอยบริการคุณ")}</p>
       </div>
 
       <div className="space-y-3">
         {staffs.length === 0 && (
           <div className="flex min-h-32 items-center justify-center rounded-xl border-2 border-dashed border-outline-variant bg-neutral-50 px-4 text-center text-xs font-semibold text-neutral-500">
-            ยังไม่มีข้อมูลช่างทำเล็บจากระบบ
+            {t("booking.staff.empty", "ยังไม่มีข้อมูลช่างทำเล็บจากระบบ")}
           </div>
         )}
         {staffs.map((stf, index) => (
@@ -180,7 +187,7 @@ export function StaffSelectionStep({
             : "bg-neutral-200 border-neutral-300 text-neutral-400 cursor-not-allowed shadow-none"
         )}
       >
-        เลือกเวลาที่สะดวกต่อ
+        {t("booking.staff.next", "เลือกเวลาที่สะดวกต่อ")}
       </button>
     </div>
   )
@@ -213,18 +220,19 @@ export function DateTimeStep({
   busySlotsLoading = false,
   busySlotsOffline = false,
 }: DateTimeStepProps) {
+  const { t } = useTranslation()
   const canContinue = Boolean(selectedDate && selectedTime && !busySlotsLoading && !busySlotsOffline)
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-black text-on-surface tracking-tight">เลือกวัน/เวลารับบริการ</h2>
-        <p className="text-xs text-neutral-400 font-semibold mt-1">ร้านเปิดให้บริการทุกวัน</p>
+        <h2 className="text-2xl font-black text-on-surface tracking-tight">{t("booking.datetime.title", "เลือกวัน/เวลารับบริการ")}</h2>
+        <p className="text-xs text-neutral-400 font-semibold mt-1">{t("booking.datetime.subtitle", "ร้านเปิดให้บริการทุกวัน")}</p>
       </div>
 
       <div className="space-y-4">
         <div className="space-y-1">
-          <label className="text-xs font-bold uppercase tracking-wider text-neutral-600">วันที่สะดวก</label>
+          <label className="text-xs font-bold uppercase tracking-wider text-neutral-600">{t("booking.datetime.dateLabel", "วันที่สะดวก")}</label>
           <DatePicker
             min={todayDateString}
             value={selectedDate}
@@ -235,12 +243,12 @@ export function DateTimeStep({
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-xs font-bold uppercase tracking-wider text-neutral-600">ช่วงเวลา</label>
+          <label className="text-xs font-bold uppercase tracking-wider text-neutral-600">{t("booking.datetime.timeLabel", "ช่วงเวลา")}</label>
           {busySlotsLoading && (
-            <p className="text-[10px] font-bold text-neutral-400">กำลังตรวจสอบเวลาว่าง...</p>
+            <p className="text-[10px] font-bold text-neutral-400">{t("booking.datetime.loading", "กำลังตรวจสอบเวลาว่าง...")}</p>
           )}
           {busySlotsOffline && (
-            <p className="text-[10px] font-bold text-red-500">ยังตรวจสอบเวลาว่างไม่ได้ กรุณาลองใหม่อีกครั้ง</p>
+            <p className="text-[10px] font-bold text-red-500">{t("booking.datetime.offline", "ยังตรวจสอบเวลาว่างไม่ได้ กรุณาลองใหม่อีกครั้ง")}</p>
           )}
           <div className="grid grid-cols-3 gap-2">
             {timeSlots.map((time) => {
@@ -278,7 +286,7 @@ export function DateTimeStep({
             : "bg-neutral-200 border-neutral-300 text-neutral-400 cursor-not-allowed shadow-none"
         )}
       >
-        กรอกข้อมูลลูกค้าต่อ
+        {t("booking.datetime.next", "กรอกข้อมูลลูกค้าต่อ")}
       </button>
     </div>
   )
@@ -305,21 +313,23 @@ export function ContactDetailStep({
   onChangeNote,
   onSubmit,
 }: ContactDetailStepProps) {
+  const { t } = useTranslation()
+
   return (
     <form onSubmit={onSubmit} className="space-y-6">
       <div>
-        <h2 className="text-2xl font-black text-on-surface tracking-tight">ยืนยันข้อมูลการติดต่อ</h2>
-        <p className="text-xs text-neutral-400 font-semibold mt-1">ใช้ข้อมูลนี้ในการส่งคิวและประวัติการจอง</p>
+        <h2 className="text-2xl font-black text-on-surface tracking-tight">{t("booking.contact.title", "ยืนยันข้อมูลการติดต่อ")}</h2>
+        <p className="text-xs text-neutral-400 font-semibold mt-1">{t("booking.contact.subtitle", "ใช้ข้อมูลนี้ในการส่งคิวและประวัติการจอง")}</p>
       </div>
 
       <div className="space-y-4">
         <div className="space-y-1">
-          <label htmlFor="book-cust-name" className="text-xs font-bold uppercase tracking-wider text-neutral-600">ชื่อผู้จอง</label>
+          <label htmlFor="book-cust-name" className="text-xs font-bold uppercase tracking-wider text-neutral-600">{t("booking.contact.name", "ชื่อผู้จอง")}</label>
           <input
             id="book-cust-name"
             type="text"
             required
-            placeholder="กรุณากรอกชื่อจริง/ชื่อเล่น"
+            placeholder={t("booking.contact.namePlaceholder", "กรุณากรอกชื่อจริง/ชื่อเล่น")}
             value={customerName}
             onChange={(e) => onChangeName(e.target.value)}
             maxLength={100}
@@ -328,12 +338,12 @@ export function ContactDetailStep({
         </div>
 
         <div className="space-y-1">
-          <label htmlFor="book-cust-phone" className="text-xs font-bold uppercase tracking-wider text-neutral-600">เบอร์โทรศัพท์ติดต่อ</label>
+          <label htmlFor="book-cust-phone" className="text-xs font-bold uppercase tracking-wider text-neutral-600">{t("booking.contact.phone", "เบอร์โทรศัพท์ติดต่อ")}</label>
           <input
             id="book-cust-phone"
             type="tel"
             required
-            placeholder="กรอกเบอร์มือถือ เช่น 0891234567"
+            placeholder={t("booking.contact.phonePlaceholder", "กรอกเบอร์มือถือ เช่น 0891234567")}
             value={customerPhone}
             onChange={(e) => onChangePhone(e.target.value.replace(/[^0-9]/g, ""))}
             maxLength={20}
@@ -342,11 +352,11 @@ export function ContactDetailStep({
         </div>
 
         <div className="space-y-1">
-          <label htmlFor="book-cust-note" className="text-xs font-bold uppercase tracking-wider text-neutral-600">หมายเหตุถึงช่าง (ถ้ามี)</label>
+          <label htmlFor="book-cust-note" className="text-xs font-bold uppercase tracking-wider text-neutral-600">{t("booking.contact.note", "หมายเหตุถึงช่าง (ถ้ามี)")}</label>
           <textarea
             id="book-cust-note"
             rows={2}
-            placeholder="ต้องการสีโทนไหนเป็นพิเศษแจ้งช่างได้เลยค่ะ"
+            placeholder={t("booking.contact.notePlaceholder", "ต้องการสีโทนไหนเป็นพิเศษแจ้งช่างได้เลยค่ะ")}
             value={customerNote}
             onChange={(e) => onChangeNote(e.target.value)}
             maxLength={500}
@@ -359,7 +369,7 @@ export function ContactDetailStep({
         type="submit"
         className="w-full bg-gradient-to-r from-primary to-secondary text-white rounded-xl py-3.5 font-bold border-2 border-on-surface shadow-[4px_4px_0px_0px_#1e1b4b] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#1e1b4b] transition-all flex items-center justify-center gap-2 text-sm"
       >
-        ยืนยันการจองคิวทำเล็บ
+        {t("booking.contact.submit", "ยืนยันการจองคิวทำเล็บ")}
       </button>
     </form>
   )
@@ -388,26 +398,28 @@ export function SuccessStep({
   onViewMyBookings,
   onReset,
 }: SuccessStepProps) {
+  const { t } = useTranslation()
+
   return (
     <div className="py-8 space-y-6 flex flex-col items-center justify-center text-center">
       <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 border-2 border-emerald-500 text-emerald-500 text-3xl shadow-[3px_3px_0px_#10B981]">
         <Check className="h-8 w-8 stroke-[3px]" />
       </div>
       <div className="space-y-2">
-        <h1 className="text-2xl font-black text-on-surface tracking-tight">ส่งคำขอจองคิวสำเร็จ!</h1>
-        <p className="text-xs text-neutral-500 font-semibold">คุณสามารถติดตามสถานะการจองได้ที่แท็บ "การจองของฉัน"</p>
+        <h1 className="text-2xl font-black text-on-surface tracking-tight">{t("booking.success.title", "ส่งคำขอจองคิวสำเร็จ!")}</h1>
+        <p className="text-xs text-neutral-500 font-semibold">{t("booking.success.subtitle", "คุณสามารถติดตามสถานะการจองได้ที่แท็บ \"การจองของฉัน\"")}</p>
       </div>
 
       <div className="w-full max-w-sm rounded-2xl border-3 border-primary bg-primary-container/20 p-5 shadow-[4px_4px_0px_#FB923C] text-left text-xs font-bold text-neutral-700 space-y-3 relative overflow-hidden">
         <div className="absolute right-3 top-3 text-4xl opacity-15">💅</div>
-        <p className="text-center text-sm font-black border-b-2 border-outline-variant/50 pb-2 mb-2 uppercase text-primary">ข้อมูลการจองของคุณ</p>
-        <div className="flex justify-between"><span>ผู้จอง:</span> <span>คุณ {customerName}</span></div>
-        <div className="flex justify-between"><span>เบอร์โทร:</span> <span>{customerPhone}</span></div>
-        <div className="flex justify-between"><span>บริการ:</span> <span>{selectedService?.nameTh || selectedService?.name}</span></div>
-        <div className="flex justify-between"><span>ช่าง:</span> <span>{selectedStaff?.name}</span></div>
-        <div className="flex justify-between"><span>วัน/เวลา:</span> <span>{selectedDate} ({selectedTime} น.)</span></div>
+        <p className="text-center text-sm font-black border-b-2 border-outline-variant/50 pb-2 mb-2 uppercase text-primary">{t("booking.success.details", "ข้อมูลการจองของคุณ")}</p>
+        <div className="flex justify-between"><span>{t("booking.success.customer", "ผู้จอง:")}</span> <span>{customerName}</span></div>
+        <div className="flex justify-between"><span>{t("booking.success.phone", "เบอร์โทร:")}</span> <span>{customerPhone}</span></div>
+        <div className="flex justify-between"><span>{t("booking.success.service", "บริการ:")}</span> <span>{selectedService?.nameTh || selectedService?.name}</span></div>
+        <div className="flex justify-between"><span>{t("booking.success.staff", "ช่าง:")}</span> <span>{selectedStaff?.name}</span></div>
+        <div className="flex justify-between"><span>{t("booking.success.dateTime", "วัน/เวลา:")}</span> <span>{selectedDate} ({selectedTime})</span></div>
         <div className="flex justify-between border-t border-dashed pt-3 font-black text-base text-primary">
-          <span>ราคารวม:</span> <span>฿{selectedService?.price}</span>
+          <span>{t("booking.success.total", "ราคารวม:")}</span> <span>฿{selectedService?.price}</span>
         </div>
       </div>
 
@@ -416,13 +428,13 @@ export function SuccessStep({
           onClick={onViewMyBookings}
           className="flex-1 bg-gradient-to-r from-primary to-secondary text-white border-2 border-on-surface rounded-xl py-3 font-bold shadow-[3px_3px_0px_#1e1b4b] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_#1e1b4b] transition-all text-xs"
         >
-          ดูการจองของฉัน
+          {t("booking.success.viewMine", "ดูการจองของฉัน")}
         </button>
         <button
           onClick={onReset}
           className="flex-1 bg-gradient-to-r from-primary to-secondary text-white border-2 border-on-surface rounded-xl py-3 font-bold shadow-[3px_3px_0px_#1e1b4b] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_#1e1b4b] transition-all text-xs"
         >
-          จองคิวใหม่อีกครั้ง
+          {t("booking.success.new", "จองคิวใหม่อีกครั้ง")}
         </button>
       </div>
     </div>
