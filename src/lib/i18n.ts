@@ -431,6 +431,90 @@ const translations: TranslationMap = {
   "admin.common.ok": {
     en: "OK",
   },
+  "admin.services.loading": {
+    en: "Loading services...",
+  },
+  "admin.services.title": {
+    en: "Services",
+  },
+  "admin.services.offline": {
+    en: "Unable to connect to the server.",
+  },
+  "admin.services.add": {
+    en: "Add service",
+  },
+  "admin.services.total": {
+    en: "Total services",
+  },
+  "admin.services.averagePrice": {
+    en: "Average price",
+  },
+  "admin.services.averageDuration": {
+    en: "Average duration",
+  },
+  "admin.services.search": {
+    en: "Search services...",
+  },
+  "admin.services.empty": {
+    en: "No matching services found.",
+  },
+  "admin.customers.loading": {
+    en: "Loading customers from server...",
+  },
+  "admin.customers.title": {
+    en: "Customers",
+  },
+  "admin.customers.offline": {
+    en: "Unable to connect to the server. Showing mock data.",
+  },
+  "admin.customers.add": {
+    en: "Add customer",
+  },
+  "admin.customers.total": {
+    en: "Total customers",
+  },
+  "admin.customers.totalRevenue": {
+    en: "Total revenue",
+  },
+  "admin.customers.averageSpend": {
+    en: "Avg. per customer",
+  },
+  "admin.customers.search": {
+    en: "Search name, phone, or email...",
+  },
+  "admin.customers.empty": {
+    en: "No matching customers found.",
+  },
+  "admin.technicians.loading": {
+    en: "Loading nail technicians...",
+  },
+  "admin.technicians.title": {
+    en: "Nail technicians",
+  },
+  "admin.technicians.offline": {
+    en: "Unable to connect to the server. Showing local data.",
+  },
+  "admin.technicians.add": {
+    en: "Add technician",
+  },
+  "admin.technicians.total": {
+    en: "Total technicians",
+  },
+  "admin.technicians.active": {
+    en: "Available",
+  },
+  "admin.technicians.experience": {
+    en: "Total experience years",
+  },
+  "admin.technicians.search": {
+    en: "Search name, nickname, phone, or specialty...",
+  },
+  "admin.technicians.averageRating": {
+    en: "Average rating",
+  },
+  "admin.technicians.empty": {
+    en: "No matching technicians found.",
+  },
 }
 
 export function translate(key: string, language: Language, fallback: string) {
