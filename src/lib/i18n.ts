@@ -218,6 +218,210 @@ const translations: TranslationMap = {
   "booking.closed.phone": {
     en: "Call us:",
   },
+  "admin.nav.dashboard": {
+    en: "Dashboard",
+  },
+  "admin.nav.appointments": {
+    en: "Appointments",
+  },
+  "admin.nav.services": {
+    en: "Services",
+  },
+  "admin.nav.technicians": {
+    en: "Technicians",
+  },
+  "admin.nav.customers": {
+    en: "Customers",
+  },
+  "admin.nav.reports": {
+    en: "Reports",
+  },
+  "admin.nav.settings": {
+    en: "Settings",
+  },
+  "admin.nav.management": {
+    en: "Management",
+  },
+  "admin.nav.newBooking": {
+    en: "New booking",
+  },
+  "admin.nav.storeSettings": {
+    en: "Store settings",
+  },
+  "admin.nav.logout": {
+    en: "Log out",
+  },
+  "admin.nav.adminUser": {
+    en: "Administrator",
+  },
+  "admin.common.offline": {
+    en: "Showing offline data because the server is unavailable.",
+  },
+  "admin.common.loadingDashboard": {
+    en: "Loading dashboard data...",
+  },
+  "admin.dashboard.greeting": {
+    en: "Hello",
+  },
+  "admin.dashboard.defaultName": {
+    en: "Admin",
+  },
+  "admin.dashboard.addAppointment": {
+    en: "Add appointment",
+  },
+  "admin.dashboard.todayAppointments": {
+    en: "Today's appointments",
+  },
+  "admin.dashboard.totalCustomers": {
+    en: "Total customers",
+  },
+  "admin.dashboard.activeServices": {
+    en: "Active services",
+  },
+  "admin.dashboard.serviceTypes": {
+    en: "types",
+  },
+  "admin.dashboard.todayRevenue": {
+    en: "Today's revenue",
+  },
+  "admin.dashboard.viewAll": {
+    en: "View all",
+  },
+  "admin.dashboard.noAppointments": {
+    en: "No appointments today.",
+  },
+  "admin.dashboard.popularServices": {
+    en: "Popular services",
+  },
+  "admin.appointments.title": {
+    en: "Appointments",
+  },
+  "admin.appointments.loading": {
+    en: "Loading appointments...",
+  },
+  "admin.appointments.offline": {
+    en: "Waiting for Booking API from backend.",
+  },
+  "admin.appointments.add": {
+    en: "Add appointment",
+  },
+  "admin.appointments.search": {
+    en: "Search customer name or service...",
+  },
+  "admin.appointments.empty": {
+    en: "No appointments found.",
+  },
+  "admin.status.all": {
+    en: "All",
+  },
+  "admin.status.confirmed": {
+    en: "Confirmed",
+  },
+  "admin.status.pending": {
+    en: "Pending",
+  },
+  "admin.status.done": {
+    en: "Completed",
+  },
+  "admin.status.cancelled": {
+    en: "Cancelled",
+  },
+  "admin.status.active": {
+    en: "In service",
+  },
+  "admin.reports.title": {
+    en: "Reports",
+  },
+  "admin.reports.subtitle": {
+    en: "Revenue summary and usage statistics",
+  },
+  "admin.reports.loading": {
+    en: "Summarizing reports...",
+  },
+  "admin.reports.offline": {
+    en: "Unable to connect to the server. Showing mock data.",
+  },
+  "admin.reports.download": {
+    en: "Download report",
+  },
+  "admin.reports.revenue": {
+    en: "Revenue",
+  },
+  "admin.reports.weekly": {
+    en: "weekly",
+  },
+  "admin.reports.monthly": {
+    en: "monthly",
+  },
+  "admin.reports.total": {
+    en: "Total",
+  },
+  "admin.reports.appointments": {
+    en: "appointments",
+  },
+  "admin.reports.average": {
+    en: "Avg.",
+  },
+  "admin.reports.perDay": {
+    en: "day",
+  },
+  "admin.reports.week": {
+    en: "Week",
+  },
+  "admin.reports.month": {
+    en: "Month",
+  },
+  "admin.settings.loading": {
+    en: "Loading settings...",
+  },
+  "admin.settings.title": {
+    en: "Store settings",
+  },
+  "admin.settings.subtitle": {
+    en: "Set store availability, business hours, and contact details.",
+  },
+  "admin.settings.statusTitle": {
+    en: "Store open/closed status",
+  },
+  "admin.settings.openStatus": {
+    en: "The store is currently open",
+  },
+  "admin.settings.closedStatus": {
+    en: "The store is temporarily closed",
+  },
+  "admin.settings.openDescription": {
+    en: "Customers can use the online booking flow normally.",
+  },
+  "admin.settings.closedDescription": {
+    en: "Customers cannot create new bookings and the homepage will show the temporary closure screen.",
+  },
+  "admin.settings.hoursTitle": {
+    en: "Business hours and contact details",
+  },
+  "admin.settings.openTime": {
+    en: "Opening time",
+  },
+  "admin.settings.closeTime": {
+    en: "Closing time",
+  },
+  "admin.settings.phone": {
+    en: "Store phone number",
+  },
+  "admin.settings.phonePlaceholder": {
+    en: "e.g. 02-123-4567",
+  },
+  "admin.settings.saving": {
+    en: "Saving...",
+  },
+  "admin.settings.save": {
+    en: "Save settings",
+  },
+  "admin.settings.warningTitle": {
+    en: "Administrator warning",
+  },
+  "admin.settings.warningBody": {
+    en: "If you switch the store to temporarily closed, external customers will not be able to start a new booking until you switch the store back to open.",
+  },
 }
 
 export function translate(key: string, language: Language, fallback: string) {
