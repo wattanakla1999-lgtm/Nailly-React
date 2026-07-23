@@ -422,6 +422,15 @@ const translations: TranslationMap = {
   "admin.settings.warningBody": {
     en: "If you switch the store to temporarily closed, external customers will not be able to start a new booking until you switch the store back to open.",
   },
+  "admin.settings.successTitle": {
+    en: "Settings saved",
+  },
+  "admin.settings.successBody": {
+    en: "Business hours and store open/closed status have been saved successfully.",
+  },
+  "admin.common.ok": {
+    en: "OK",
+  },
 }
 
 export function translate(key: string, language: Language, fallback: string) {

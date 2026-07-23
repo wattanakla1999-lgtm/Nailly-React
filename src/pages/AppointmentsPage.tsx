@@ -6,6 +6,7 @@ import { AddAppointmentModal } from "@/components/appointments/AddAppointmentMod
 import { EditAppointmentModal } from "@/components/appointments/EditAppointmentModal"
 import { LoadingPopup } from "@/components/LoadingPopup"
 import { getApiErrorMessage } from "@/lib/apiError"
+import { useTranslation } from "@/hooks/useTranslation"
 import {
   createBooking,
   deleteBooking,
@@ -28,15 +29,16 @@ const FILTER_TABS: { label: string; value: AppStatus | "all" }[] = [
   { label: "ยกเลิก", value: "cancelled" },
 ]
 
-const STATUS_CONFIG: Record<string, { label: string; styles: string }> = {
-  confirmed: { label: "ยืนยันแล้ว", styles: "bg-tertiary-container text-tertiary border-tertiary" },
-  pending:   { label: "รอยืนยัน",  styles: "bg-secondary-container text-on-secondary-container border-secondary" },
-  done:      { label: "เสร็จสิ้น", styles: "bg-neutral-100 text-neutral-500 border-neutral-300" },
-  cancelled: { label: "ยกเลิก",    styles: "bg-red-100 text-red-600 border-red-300" },
-  active:    { label: "กำลังรับบริการ", styles: "bg-purple-100 text-purple-600 border-purple-300" },
+const STATUS_STYLES: Record<string, string> = {
+  confirmed: "bg-tertiary-container text-tertiary border-tertiary",
+  pending: "bg-secondary-container text-on-secondary-container border-secondary",
+  done: "bg-neutral-100 text-neutral-500 border-neutral-300",
+  cancelled: "bg-red-100 text-red-600 border-red-300",
+  active: "bg-purple-100 text-purple-600 border-purple-300",
 }
 
 export function AppointmentsPage() {
+  const { t } = useTranslation()
   const [appointments, setAppointments] = useState<Appointment[]>([])
   const [customers, setCustomers] = useState<Customer[]>([])
   const [services, setServices] = useState<Service[]>([])
@@ -197,21 +199,29 @@ export function AppointmentsPage() {
     return acc
   }, {})
   const totalPages = Math.ceil(total / limit) || 1
+  const statusLabels: Record<AppStatus | "all", string> = {
+    all: t("admin.status.all", "ทั้งหมด"),
+    confirmed: t("admin.status.confirmed", "ยืนยันแล้ว"),
+    pending: t("admin.status.pending", "รอยืนยัน"),
+    done: t("admin.status.done", "เสร็จสิ้น"),
+    cancelled: t("admin.status.cancelled", "ยกเลิก"),
+    active: t("admin.status.active", "กำลังรับบริการ"),
+  }
 
   return (
     <div className="space-y-4">
-      <LoadingPopup isOpen={loading} message="กำลังเรียกดูข้อมูลคิวนัดหมาย..." />
+      <LoadingPopup isOpen={loading} message={t("admin.appointments.loading", "กำลังเรียกดูข้อมูลคิวนัดหมาย...")} />
 
       {/* Header Section */}
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
           <h1 className="flex items-baseline gap-2 text-2xl font-black tracking-tight text-on-surface">
-            การนัดหมาย
+            {t("admin.appointments.title", "การนัดหมาย")}
             <span className="text-base font-normal text-outline">({total})</span>
           </h1>
           {isOffline && (
             <p className="mt-1 flex items-center gap-1 text-[10px] font-bold text-amber-500">
-              <AlertCircle className="h-3 w-3" /> รอเปิดใช้งาน Booking API จาก backend
+              <AlertCircle className="h-3 w-3" /> {t("admin.appointments.offline", "รอเปิดใช้งาน Booking API จาก backend")}
             </p>
           )}
         </div>
@@ -220,7 +230,7 @@ export function AppointmentsPage() {
           className="flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl border-2 border-on-surface bg-gradient-to-r from-primary to-secondary px-3 text-xs font-bold text-white shadow-[3px_3px_0px_0px_#1e1b4b] transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#1e1b4b] active:scale-95"
         >
           <Plus className="h-4 w-4 stroke-[3px]" />
-          เพิ่มนัดหมาย
+          {t("admin.appointments.add", "เพิ่มนัดหมาย")}
         </button>
       </div>
 
@@ -230,7 +240,7 @@ export function AppointmentsPage() {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-outline" />
           <input
             type="text"
-            placeholder="ค้นหาชื่อลูกค้า, บริการ..."
+            placeholder={t("admin.appointments.search", "ค้นหาชื่อลูกค้า, บริการ...")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             maxLength={100}
@@ -257,7 +267,7 @@ export function AppointmentsPage() {
                   : "bg-white border-outline-variant text-on-surface hover:bg-surface-variant shadow-[2px_2px_0px_0px_#c7d2fe]"
               )}
             >
-              {label}
+              {statusLabels[value] || label}
             </button>
           )
         })}
@@ -267,7 +277,7 @@ export function AppointmentsPage() {
       {Object.keys(grouped).length === 0 ? (
         <div className="y2k-card p-12 text-center text-neutral-400">
           <Calendar className="mx-auto mb-3 h-12 w-12 opacity-30" />
-          <p className="font-bold text-sm">ไม่พบนัดหมายในขณะนี้</p>
+          <p className="font-bold text-sm">{t("admin.appointments.empty", "ไม่พบนัดหมายในขณะนี้")}</p>
         </div>
       ) : (
         <div className="space-y-5">
@@ -294,15 +304,15 @@ export function AppointmentsPage() {
                       )}
                     >
                       <span className="text-base font-bold leading-none">{apt.time}</span>
-                      <span className="text-[10px] font-semibold opacity-75">{apt.duration} นาที</span>
+                      <span className="text-[10px] font-semibold opacity-75">{apt.duration} {t("booking.service.duration", "นาที")}</span>
                     </div>
 
                     {/* Middle Details */}
                     <div className="flex min-w-0 flex-grow flex-col justify-center space-y-1.5 text-[10px] font-bold text-neutral-600">
                       <div className="flex min-w-0 items-center gap-1.5">
                         <h4 className="truncate text-sm font-black text-on-surface">{apt.customerName || apt.name}</h4>
-                        <span className={cn("shrink-0 rounded-full border px-2 py-0.5 text-[9px] font-bold", (STATUS_CONFIG[apt.status] || STATUS_CONFIG.pending).styles)}>
-                          {(STATUS_CONFIG[apt.status] || STATUS_CONFIG.pending).label}
+                        <span className={cn("shrink-0 rounded-full border px-2 py-0.5 text-[9px] font-bold", STATUS_STYLES[apt.status] || STATUS_STYLES.pending)}>
+                          {statusLabels[apt.status] || statusLabels.pending}
                         </span>
                       </div>
                       
@@ -312,9 +322,9 @@ export function AppointmentsPage() {
                       </p>
 
                       <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-                        {apt.phone && <p>📞 โทร: <span className="text-neutral-800 font-bold">{apt.phone}</span></p>}
-                        <p>👤 ช่าง: <span className="text-neutral-800 font-bold">{apt.staff}</span></p>
-                        <p>💰 ราคา: <span className="text-primary font-black">฿{apt.price}</span></p>
+                        {apt.phone && <p>📞 {t("booking.success.phone", "เบอร์โทร:")} <span className="text-neutral-800 font-bold">{apt.phone}</span></p>}
+                        <p>👤 {t("booking.banner.staff", "ช่าง:")} <span className="text-neutral-800 font-bold">{apt.staff}</span></p>
+                        <p>💰 {t("booking.service.price", "ราคา")}: <span className="text-primary font-black">฿{apt.price}</span></p>
                       </div>
 
                       {apt.status === "cancelled" && apt.cancelReason && (

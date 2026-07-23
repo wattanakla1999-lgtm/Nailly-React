@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { BarChart } from "@/components/BarChart"
 import { LoadingPopup } from "@/components/LoadingPopup"
+import { useTranslation } from "@/hooks/useTranslation"
 import { useQuery } from "@tanstack/react-query"
 import { fetchReportData } from "@/services/reportService"
 import { ReportSummaryCards } from "@/components/reports/ReportSummaryCards"
@@ -11,6 +12,7 @@ import { PaymentBreakdown } from "@/components/reports/PaymentBreakdown"
 import { RecentTransactions } from "@/components/reports/RecentTransactions"
 
 export function ReportsPage() {
+  const { t } = useTranslation()
   const [period, setPeriod] = useState<"week" | "month">("week")
 
   // Fetch report data using useQuery
@@ -40,16 +42,16 @@ export function ReportsPage() {
 
   return (
     <div className="space-y-8">
-      <LoadingPopup isOpen={loading} message="กำลังสรุปยอดรายงาน..." />
+      <LoadingPopup isOpen={loading} message={t("admin.reports.loading", "กำลังสรุปยอดรายงาน...")} />
 
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-on-surface tracking-tight">รายงาน</h1>
-          <p className="text-sm text-on-surface-variant font-semibold mt-1">สรุปรายได้และสถิติการใช้งาน</p>
+          <h1 className="text-3xl font-black text-on-surface tracking-tight">{t("admin.reports.title", "รายงาน")}</h1>
+          <p className="text-sm text-on-surface-variant font-semibold mt-1">{t("admin.reports.subtitle", "สรุปรายได้และสถิติการใช้งาน")}</p>
           {isOffline && (
             <p className="text-[10px] text-amber-500 font-bold flex items-center gap-1 mt-1">
-              <AlertCircle className="h-3 w-3" /> เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ แสดงข้อมูลจำลอง (Offline Mode)
+              <AlertCircle className="h-3 w-3" /> {t("admin.reports.offline", "เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ แสดงข้อมูลจำลอง (Offline Mode)")}
             </p>
           )}
         </div>
@@ -58,7 +60,7 @@ export function ReportsPage() {
           className="shrink-0 gap-2 rounded-xl text-sm border-2 border-outline hover:bg-neutral-50 shadow-[2px_2px_0px_#c7d2fe] font-bold"
         >
           <Download className="h-4 w-4" />
-          <span className="hidden sm:inline">ดาวน์โหลดรายงาน</span>
+          <span className="hidden sm:inline">{t("admin.reports.download", "ดาวน์โหลดรายงาน")}</span>
         </Button>
       </div>
 
@@ -70,10 +72,10 @@ export function ReportsPage() {
         <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 className="text-lg font-black text-on-surface uppercase tracking-tight">
-              รายได้ {period === "week" ? "รายสัปดาห์" : "รายเดือน"}
+              {t("admin.reports.revenue", "รายได้")} {period === "week" ? t("admin.reports.weekly", "รายสัปดาห์") : t("admin.reports.monthly", "รายเดือน")}
             </h2>
             <p className="text-xs text-neutral-500 font-bold mt-1">
-              รวม ฿{totalRevenue.toLocaleString()} · {totalAppointments} นัด · เฉลี่ย ฿{avgPerDay.toLocaleString()}/วัน
+              {t("admin.reports.total", "รวม")} ฿{totalRevenue.toLocaleString()} · {totalAppointments} {t("admin.reports.appointments", "นัด")} · {t("admin.reports.average", "เฉลี่ย")} ฿{avgPerDay.toLocaleString()}/{t("admin.reports.perDay", "วัน")}
             </p>
           </div>
           <div className="flex gap-1 rounded-xl border-2 border-outline-variant p-1 bg-neutral-50 self-start">
@@ -88,7 +90,7 @@ export function ReportsPage() {
                     : "text-neutral-500 hover:text-neutral-700"
                 )}
               >
-                {p === "week" ? "สัปดาห์" : "เดือน"}
+                {p === "week" ? t("admin.reports.week", "สัปดาห์") : t("admin.reports.month", "เดือน")}
               </button>
             ))}
           </div>

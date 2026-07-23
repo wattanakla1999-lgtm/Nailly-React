@@ -11,6 +11,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/useAuth"
+import { useTranslation } from "@/hooks/useTranslation"
 import { cn } from "@/lib/utils"
 import { StatCard } from "@/components/StatCard"
 import { AppointmentRow } from "@/components/AppointmentRow"
@@ -20,6 +21,7 @@ import { fetchDashboardData } from "@/services/dashboardService"
 
 export function DashboardPage() {
   const { user } = useAuth()
+  const { language, t } = useTranslation()
   const navigate = useNavigate()
 
   const { data, isLoading } = useQuery({
@@ -27,7 +29,7 @@ export function DashboardPage() {
     queryFn: fetchDashboardData,
   })
 
-  const todayStr = new Date().toLocaleDateString("th-TH", {
+  const todayStr = new Date().toLocaleDateString(language === "th" ? "th-TH" : "en-US", {
     weekday: "long",
     year: "numeric",
     month: "long",
@@ -35,7 +37,7 @@ export function DashboardPage() {
   })
 
   if (isLoading) {
-    return <LoadingPopup isOpen={true} message="กำลังโหลดข้อมูลแดชบอร์ด..." />
+    return <LoadingPopup isOpen={true} message={t("admin.common.loadingDashboard", "กำลังโหลดข้อมูลแดชบอร์ด...")} />
   }
 
   const stats = data || {
@@ -56,14 +58,16 @@ export function DashboardPage() {
     <div className="flex flex-col gap-8">
       {isOffline && (
         <div className="rounded-xl border-2 border-amber-200 bg-amber-50 px-4 py-2.5 text-xs font-semibold text-amber-800">
-          ⚠️ กำลังแสดงข้อมูลแบบออฟไลน์ (เชื่อมต่อเซิร์ฟเวอร์ไม่ได้)
+          ⚠️ {t("admin.common.offline", "กำลังแสดงข้อมูลแบบออฟไลน์ (เชื่อมต่อเซิร์ฟเวอร์ไม่ได้)")}
         </div>
       )}
 
       {/* Welcome Header */}
       <section className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-black text-on-surface tracking-tight">สวัสดี, คุณ{user?.name || "มินนี่"} 👋</h2>
+          <h2 className="text-3xl font-black text-on-surface tracking-tight">
+            {t("admin.dashboard.greeting", "สวัสดี")}, {user?.name || t("admin.dashboard.defaultName", "คุณมินนี่")} 👋
+          </h2>
           <p className="text-base text-on-surface-variant mt-1 font-semibold">{todayStr}</p>
         </div>
         <Button
@@ -71,7 +75,7 @@ export function DashboardPage() {
           className="w-full sm:w-auto bg-gradient-to-r from-[#818CF8] to-[#FB923C] text-white rounded-xl py-3 px-6 font-bold border-2 border-on-surface shadow-[4px_4px_0px_0px_#1e1b4b] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#1e1b4b] active:scale-95 transition-all flex items-center justify-center gap-2"
         >
           <Plus className="h-5 w-5 stroke-[3px]" />
-          เพิ่มนัดหมาย
+          {t("admin.dashboard.addAppointment", "เพิ่มนัดหมาย")}
         </Button>
       </section>
 
@@ -79,7 +83,7 @@ export function DashboardPage() {
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         <StatCard
           icon={<Calendar className="h-6 w-6" />}
-          label="นัดหมายวันนี้"
+          label={t("admin.dashboard.todayAppointments", "นัดหมายวันนี้")}
           value={String(stats.todayAppointments)}
           sub={
             stats.todayAppointmentsChange > 0 ? (
@@ -93,7 +97,7 @@ export function DashboardPage() {
         />
         <StatCard
           icon={<Users className="h-6 w-6" />}
-          label="ลูกค้าทั้งหมด"
+          label={t("admin.dashboard.totalCustomers", "ลูกค้าทั้งหมด")}
           value={String(stats.totalCustomers)}
           sub={
             stats.totalCustomersChange ? (
@@ -107,11 +111,11 @@ export function DashboardPage() {
         />
         <StatCard
           icon={<Scissors className="h-6 w-6" />}
-          label="บริการที่ให้"
+          label={t("admin.dashboard.activeServices", "บริการที่ให้")}
           value={String(stats.activeServicesCount)}
           sub={
             <span className="font-bold text-xs text-on-surface-variant bg-surface-variant px-2.5 py-0.5 rounded-lg border-2 border-outline-variant">
-              ประเภท
+              {t("admin.dashboard.serviceTypes", "ประเภท")}
             </span>
           }
           color="bg-tertiary-container border-tertiary text-tertiary"
@@ -119,7 +123,7 @@ export function DashboardPage() {
         />
         <StatCard
           icon={<TrendingUp className="h-6 w-6" />}
-          label="รายได้วันนี้"
+          label={t("admin.dashboard.todayRevenue", "รายได้วันนี้")}
           value={`฿${stats.todayRevenue.toLocaleString()}`}
           color="bg-gradient-to-br from-[#818CF8] to-[#FB923C] border-on-surface text-white"
           to="/reports"
@@ -131,18 +135,18 @@ export function DashboardPage() {
         {/* Left: นัดหมายวันนี้ */}
         <div className="lg:col-span-2 y2k-card flex flex-col p-0 overflow-hidden">
           <div className="p-5 border-b-2 border-outline-variant flex justify-between items-center bg-surface-variant/30 rounded-t-xl">
-            <h3 className="font-black text-xl text-on-surface uppercase tracking-tight">นัดหมายวันนี้</h3>
+            <h3 className="font-black text-xl text-on-surface uppercase tracking-tight">{t("admin.dashboard.todayAppointments", "นัดหมายวันนี้")}</h3>
             <button
               onClick={() => navigate("/appointments")}
               className="text-primary font-bold text-sm hover:text-secondary underline decoration-2 underline-offset-4 transition-colors"
             >
-              ดูทั้งหมด
+              {t("admin.dashboard.viewAll", "ดูทั้งหมด")}
             </button>
           </div>
           <div className="flex flex-col p-4 gap-4 bg-white">
             {stats.appointments.length === 0 ? (
               <div className="py-8 text-center text-xs font-bold text-neutral-400">
-                ไม่มีรายการนัดหมายวันนี้ค่ะ
+                {t("admin.dashboard.noAppointments", "ไม่มีรายการนัดหมายวันนี้ค่ะ")}
               </div>
             ) : (
               stats.appointments.map((apt) => (
@@ -163,7 +167,7 @@ export function DashboardPage() {
         {/* Right: บริการยอดนิยม */}
         <div className="lg:col-span-1 y2k-card flex flex-col p-5 bg-surface-variant/20">
           <div className="flex justify-between items-center mb-6">
-            <h3 className="font-black text-xl text-on-surface uppercase tracking-tight">บริการยอดนิยม</h3>
+            <h3 className="font-black text-xl text-on-surface uppercase tracking-tight">{t("admin.dashboard.popularServices", "บริการยอดนิยม")}</h3>
             <Sparkles className="h-5 w-5 text-primary" />
           </div>
           <div className="flex flex-col gap-6">

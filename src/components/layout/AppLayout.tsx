@@ -14,22 +14,24 @@ import {
 } from "lucide-react"
 import { LanguageSwitcher } from "@/components/LanguageSwitcher"
 import { useAuth } from "@/hooks/useAuth"
+import { useTranslation } from "@/hooks/useTranslation"
 import { cn } from "@/lib/utils"
 
 // ─── Nav Items ────────────────────────────────────────────────────────────────
 
 const NAV_ITEMS = [
-  { label: "ภาพรวม", icon: LayoutDashboard, to: "/dashboard" },
-  { label: "การนัดหมาย", icon: Calendar, to: "/appointments" },
-  { label: "บริการ", icon: Scissors, to: "/services" },
-  { label: "ช่างทำเล็บ", icon: UserRoundCog, to: "/technicians" },
-  { label: "ลูกค้า", icon: Users, to: "/customers" },
-  { label: "รายงาน", icon: TrendingUp, to: "/reports" },
-  { label: "ตั้งค่า", icon: Settings, to: "/settings" },
+  { label: "ภาพรวม", key: "admin.nav.dashboard", icon: LayoutDashboard, to: "/dashboard" },
+  { label: "การนัดหมาย", key: "admin.nav.appointments", icon: Calendar, to: "/appointments" },
+  { label: "บริการ", key: "admin.nav.services", icon: Scissors, to: "/services" },
+  { label: "ช่างทำเล็บ", key: "admin.nav.technicians", icon: UserRoundCog, to: "/technicians" },
+  { label: "ลูกค้า", key: "admin.nav.customers", icon: Users, to: "/customers" },
+  { label: "รายงาน", key: "admin.nav.reports", icon: TrendingUp, to: "/reports" },
+  { label: "ตั้งค่า", key: "admin.nav.settings", icon: Settings, to: "/settings" },
 ]
 
 export function AppLayout() {
   const { user, logout } = useAuth()
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const location = useLocation()
   const [showProfileMenu, setShowProfileMenu] = useState(false)
@@ -65,7 +67,7 @@ export function AppLayout() {
                   
                   <div className="absolute right-0 mt-2 w-48 bg-white border-3 border-on-surface rounded-2xl shadow-[4px_4px_0px_#FB923C] py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
                     <div className="px-4 py-2 border-b-2 border-outline-variant/60">
-                      <p className="text-xs font-black text-on-surface truncate">{user?.name ?? "ผู้ดูแลระบบ"}</p>
+                      <p className="text-xs font-black text-on-surface truncate">{user?.name ?? t("admin.nav.adminUser", "ผู้ดูแลระบบ")}</p>
                       <p className="text-[10px] text-neutral-400 font-bold truncate">@{user?.username ?? "admin"}</p>
                     </div>
                     <button
@@ -76,7 +78,7 @@ export function AppLayout() {
                       className="w-full text-left px-4 py-2.5 text-xs font-bold text-neutral-700 hover:bg-neutral-50 flex items-center gap-2"
                     >
                       <Settings className="h-4 w-4" />
-                      ตั้งค่าร้าน
+                      {t("admin.nav.storeSettings", "ตั้งค่าร้าน")}
                     </button>
                     <button
                       onClick={() => {
@@ -86,7 +88,7 @@ export function AppLayout() {
                       className="w-full text-left px-4 py-2.5 text-xs font-bold text-red-500 hover:bg-red-50 flex items-center gap-2 border-t border-dashed border-outline-variant/60"
                     >
                       <LogOut className="h-4 w-4" />
-                      ออกจากระบบ
+                      {t("admin.nav.logout", "ออกจากระบบ")}
                     </button>
                   </div>
                 </>
@@ -96,7 +98,7 @@ export function AppLayout() {
         </div>
         {/* Scrollable Submenu */}
         <div className="flex overflow-x-auto px-6 gap-6 pb-2 hide-scrollbar scroll-smooth">
-          {NAV_ITEMS.map(({ label, to }) => {
+          {NAV_ITEMS.map(({ label, key, to }) => {
             const isActive = location.pathname === to
             return (
               <NavLink
@@ -109,7 +111,7 @@ export function AppLayout() {
                     : "text-on-surface-variant/70 border-transparent hover:text-primary"
                 )}
               >
-                {label}
+                {t(key, label)}
               </NavLink>
             )
           })}
@@ -125,7 +127,7 @@ export function AppLayout() {
           </div>
           <div>
             <h1 className="text-2xl text-primary font-black tracking-tighter leading-none">Nailly</h1>
-            <p className="text-[10px] text-secondary font-bold uppercase tracking-wider mt-1">Management</p>
+            <p className="text-[10px] text-secondary font-bold uppercase tracking-wider mt-1">{t("admin.nav.management", "Management")}</p>
           </div>
         </div>
 
@@ -138,13 +140,13 @@ export function AppLayout() {
             className="w-full bg-gradient-to-r from-primary to-secondary text-white rounded-xl py-3 px-4 font-bold uppercase tracking-wider border-2 border-on-surface shadow-[4px_4px_0px_0px_#1e1b4b] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#1e1b4b] active:scale-95 transition-all flex items-center justify-center gap-2 text-xs"
           >
             <Plus className="h-4 w-4 stroke-[3px]" />
-            จองคิวใหม่
+            {t("admin.nav.newBooking", "จองคิวใหม่")}
           </button>
         </div>
 
         {/* Main Nav Links */}
         <nav className="flex flex-col gap-2.5 flex-grow">
-          {NAV_ITEMS.map(({ label, icon: Icon, to }) => {
+          {NAV_ITEMS.map(({ label, key, icon: Icon, to }) => {
             const isActive = location.pathname === to
             return (
               <NavLink
@@ -158,7 +160,7 @@ export function AppLayout() {
                 )}
               >
                 <Icon className={cn("h-5 w-5", isActive ? "stroke-[2.5px]" : "stroke-[2px]")} />
-                <span className="text-xs uppercase tracking-wider">{label}</span>
+                <span className="text-xs uppercase tracking-wider">{t(key, label)}</span>
               </NavLink>
             )
           })}
@@ -171,14 +173,14 @@ export function AppLayout() {
             className="text-on-surface-variant/80 flex items-center gap-3 px-4 py-2 hover:bg-surface-variant/40 hover:text-primary rounded-xl transition-all font-semibold hover:translate-x-1 text-left w-full"
           >
             <Settings className="h-4 w-4" />
-            <span className="text-xs uppercase tracking-wider">ตั้งค่า</span>
+            <span className="text-xs uppercase tracking-wider">{t("admin.nav.settings", "ตั้งค่า")}</span>
           </button>
           <button
             onClick={handleLogout}
             className="text-on-surface-variant/80 flex items-center gap-3 px-4 py-2 hover:bg-red-50 hover:text-red-500 rounded-xl transition-all font-semibold hover:translate-x-1 text-left w-full"
           >
             <LogOut className="h-4 w-4" />
-            <span className="text-xs uppercase tracking-wider">ออกจากระบบ</span>
+            <span className="text-xs uppercase tracking-wider">{t("admin.nav.logout", "ออกจากระบบ")}</span>
           </button>
         </div>
       </aside>
